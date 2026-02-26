@@ -13,21 +13,30 @@ commands:
   install_deps:
     description: Install dependencies
 
+    parameters:
+      include_syntax:
+        type: boolean
+        default: false
+
     steps:
       - restore_cache:
           keys:
             - v2-sshtunnel-{{ arch }}-{{ checksum "setup.py" }}-{{ checksum "tests/requirements.txt" }}-{{ checksum "tests/requirements-syntax.txt" }}
             - v2-sshtunnel-{{ arch }}-
       - run:
-          name: Install sshtunnel and dependencies
+          name: Install sshtunnel
           command: |
             pipenv --python $(which python) install -e .
-            pipenv install --dev -r tests/requirements.txt
-            pipenv install --dev -r tests/requirements-syntax.txt
       - run:
-          name: Output Pipfile.lock
+          name: Install dev dependencies
           command: |
-            if [ -f Pipfile.lock ]; then cat Pipfile.lock; else echo "No lockfile found"; fi
+            pipenv --python $(which python) install --dev -r tests/requirements.txt
+      - when:
+          condition: << parameters.include_syntax >>
+          steps:
+            - run:
+                name: Install syntax dependencies
+                command: pipenv --python $(which python) install --dev -r tests/requirements-syntax.txt
       - save_cache:
           key: v2-sshtunnel-{{ arch }}-{{ checksum "setup.py" }}-{{ checksum "tests/requirements.txt" }}-{{ checksum "tests/requirements-syntax.txt" }}
           paths:
@@ -145,7 +154,7 @@ jobs:
 
     steps:
       - checkout
-      - install_deps
+      - install_deps: { include_syntax: true }
       - run:
           name: checking MANIFEST.in
           command: pipenv run check-manifest --ignore tox.ini,tests*,*.yml
