@@ -25,18 +25,34 @@ commands:
             - v2-sshtunnel-{{ arch }}-
       - run:
           name: Install sshtunnel
-          command: |
-            pipenv --python $(which python) install -e .
+          command:  >-
+            pipenv
+            --python $(which python)
+            install
+            --skip-lock
+            -e
+            .
       - run:
           name: Install dev dependencies
-          command: |
-            pipenv --python $(which python) install --dev -r tests/requirements.txt
+          command:  >-
+            pipenv
+            --python $(which python)
+            install
+            --skip-lock
+            --dev
+            -r tests/requirements.txt
       - when:
           condition: << parameters.include_syntax >>
           steps:
             - run:
                 name: Install syntax dependencies
-                command: pipenv --python $(which python) install --dev -r tests/requirements-syntax.txt
+                command:  >-
+                  pipenv
+                  --python $(which python)
+                  install
+                  --skip-lock
+                  --dev
+                  -r tests/requirements-syntax.txt
       - save_cache:
           key: v2-sshtunnel-{{ arch }}-{{ checksum "setup.py" }}-{{ checksum "tests/requirements.txt" }}-{{ checksum "tests/requirements-syntax.txt" }}
           paths:
