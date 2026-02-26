@@ -13,29 +13,23 @@ commands:
   install_deps:
     description: Install dependencies
 
-    parameters:
-      version:
-        type: string
-
     steps:
       - restore_cache:
           keys:
-            - v2-sshtunnel-{{ arch }}-<< parameters.version >>-{{ checksum "setup.py" }}-{{ checksum "tests/requirements.txt" }}-{{ checksum "tests/requirements-syntax.txt" }}
-            - v2-sshtunnel-{{ arch }}-<< parameters.version >>-
+            - v2-sshtunnel-{{ arch }}-{{ checksum "setup.py" }}-{{ checksum "tests/requirements.txt" }}-{{ checksum "tests/requirements-syntax.txt" }}
+            - v2-sshtunnel-{{ arch }}-
       - run:
           name: Install sshtunnel and dependencies
           command: |
-            python -m pip install --upgrade pip pipenv
-            python --version && pipenv --version && pip --version
             pipenv install -e .
             pipenv install --dev -r tests/requirements.txt
             pipenv install --dev -r tests/requirements-syntax.txt
       - run:
           name: Output Pipfile.lock
           command: |
-            cat Pipfile.lock
+            if [ -f Pipfile.lock ]; then cat Pipfile.lock; else echo "No lockfile found"; fi
       - save_cache:
-          key: v2-sshtunnel-{{ arch }}-<< parameters.version >>-{{ checksum "setup.py" }}-{{ checksum "tests/requirements.txt" }}-{{ checksum "tests/requirements-syntax.txt" }}
+          key: v2-sshtunnel-{{ arch }}-{{ checksum "setup.py" }}-{{ checksum "tests/requirements.txt" }}-{{ checksum "tests/requirements-syntax.txt" }}
           paths:
             - .venv/
 
@@ -50,7 +44,7 @@ jobs:
 
     steps:
       - checkout
-      - install_deps: { version: << parameters.version >> }
+      - install_deps
       - run:
           name: Run test suite
           command: >-
@@ -77,12 +71,12 @@ jobs:
   upload_coverage:
     description: Upload coverage to coveralls
 
-    executor: { name: python_base, version: "3.9.25" }
+    executor: { name: python_base }
 
     steps:
       - checkout
       - attach_workspace: { at: . }
-      - install_deps: { version: "3.9.25" }
+      - install_deps
       - run:
           name: Upload to Coveralls
           command: |
@@ -92,11 +86,11 @@ jobs:
   package:
     description: Build artifacts
 
-    executor: { name: python_base, version: "3.9.25" }
+    executor: { name: python_base }
 
     steps:
       - checkout
-      - install_deps: { version: "3.9.25" }
+      - install_deps
       - run:
           name: Build artifact
           command: pipenv run python setup.py bdist_egg bdist_wheel sdist
@@ -114,7 +108,7 @@ jobs:
       repository: { type: string, default: "pypi" }
       token_env: { type: env_var_name, default: PYPI_TOKEN }
 
-    executor: { name: python_base, version: "3.9.25" }
+    executor: { name: python_base }
 
     steps:
       - attach_workspace: { at: . }
@@ -130,14 +124,11 @@ jobs:
   docs:
     description: Produce documentation from source
 
-    executor:
-      name: python_base
-      version: "3.9.25"
+    executor: { name: python_base }
 
     steps:
       - checkout
-      - install_deps:
-          version: "3.9.25"
+      - install_deps
       - run:
           name: Build documentation
           command: |
@@ -150,14 +141,11 @@ jobs:
   syntax:
     description: Run syntax validation tests
 
-    executor:
-      name: python_base
-      version: "3.9.25"
+    executor: { name: python_base }
 
     steps:
       - checkout
-      - install_deps:
-          version: "3.9.25"
+      - install_deps
       - run:
           name: checking MANIFEST.in
           command: pipenv run check-manifest --ignore tox.ini,tests*,*.yml
