@@ -130,12 +130,14 @@ jobs:
     description: Upload artifacts to PyPI
 
     parameters:
-      repository: { type: string, default: "pypi" }
-      token_env: { type: env_var_name, default: PYPI_TOKEN }
+      repository: { type: string, default: "testpypi" }
+      token_env: { type: env_var_name, default: TESTPYPI_TOKEN }
 
     executor: { name: python_base }
 
     steps:
+      - checkout
+      - install_deps
       - attach_workspace: { at: . }
       - run:
           name: Upload to TestPyPI
@@ -146,6 +148,7 @@ jobs:
             --password ${<< parameters.token_env >>}
             --skip-existing
             dist/*
+
   docs:
     description: Produce documentation from source
 
@@ -215,8 +218,6 @@ workflows:
           requires: [tests]
       - deploy_pypi:
           name: test_deploy
-          repository: testpypi
-          token_env: TESTPYPI_TOKEN
           requires: [package]
       - hold:
           type: approval
