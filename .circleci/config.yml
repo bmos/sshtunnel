@@ -21,7 +21,7 @@ commands:
       - run:
           name: Install sshtunnel and dependencies
           command: |
-            pipenv install -e .
+            pipenv --python $(which python) install -e .
             pipenv install --dev -r tests/requirements.txt
             pipenv install --dev -r tests/requirements-syntax.txt
       - run:
