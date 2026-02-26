@@ -118,7 +118,7 @@ jobs:
       - install_deps
       - run:
           name: Build artifact
-          command: pipenv run python setup.py bdist_egg bdist_wheel sdist
+          command: pipenv run python setup.py bdist_wheel sdist
       - run:
           name: Check artifacts
           command: pipenv run twine check dist/*
