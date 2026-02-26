@@ -73,10 +73,10 @@ jobs:
       - run:
           name: Run test suite
           command: >-
-            pipenv run py.test tests
+            pipenv run pytest tests
             --showlocals
             --durations=10
-            -n4
+            -n auto
             -W ignore::DeprecationWarning
             --cov sshtunnel
             --cov-report=html:test_results/coverage.html
