@@ -2,7 +2,6 @@ bashtest
 check-manifest
 docutils
 flake8
-importlib-metadata
 mccabe
 pygments
 readme
