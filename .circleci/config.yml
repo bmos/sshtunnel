@@ -11,6 +11,8 @@ executors:
 
 commands:
   install_deps:
+    description: Install dependencies
+
     parameters:
       version:
         type: string
@@ -18,36 +20,34 @@ commands:
     steps:
       - restore_cache:
           keys:
-            - sshtunnel-py<< parameters.version >>-{{ checksum "sshtunnel.py" }}-{{ checksum "tests/requirements.txt" }}-0
+            - v2-sshtunnel-{{ arch }}-<< parameters.version >>-{{ checksum "setup.py" }}-{{ checksum "tests/requirements.txt" }}-{{ checksum "tests/requirements-syntax.txt" }}
+            - v2-sshtunnel-{{ arch }}-<< parameters.version >>-
       - run:
-          name: Install sshtunnel and build&test dependencies
-          environment:
-            PIPENV_VENV_IN_PROJECT: 1
+          name: Install sshtunnel and dependencies
           command: |
-            python --version
-            pipenv --version
-            pip --version
+            python -m pip install --upgrade pip pipenv
+            python --version && pipenv --version && pip --version
             pipenv install -e .
             pipenv install --dev -r tests/requirements.txt
+            pipenv install --dev -r tests/requirements-syntax.txt
+            cat Pipfile.lock
       - save_cache:
-          key: sshtunnel-py<< parameters.version >>-{{ checksum "sshtunnel.py" }}-{{ checksum "tests/requirements.txt" }}-0
+          key: v2-sshtunnel-{{ arch }}-<< parameters.version >>-{{ checksum "setup.py" }}-{{ checksum "tests/requirements.txt" }}-{{ checksum "tests/requirements-syntax.txt" }}
           paths:
             - .venv/
 
 jobs:
   tests:
-    parameters:
-      version:
-        type: string
+    description: Run test suite for each python version
 
-    executor:
-      name: python_base
-      version: << parameters.version >>
+    parameters:
+      version: { type: string }
+
+    executor: { name: python_base, version: << parameters.version >> }
 
     steps:
       - checkout
-      - install_deps:
-          version: << parameters.version >>
+      - install_deps: { version: << parameters.version >> }
       - run:
           name: Run test suite
           command: >-
@@ -61,14 +61,72 @@ jobs:
             --cov-report=term
             --junit-xml=test_results/report.xml
       - run:
-          name: Coveralls
-          command: pipenv run coveralls
+          name: Move coverage file
+          command: |
+            mv .coverage .coverage.<< parameters.version >>
+      - persist_to_workspace:
+          root: .
+          paths:
+            - .coverage.*
       - store_test_results:
           path: test_results
-      - store_artifacts:
-          path: test_results
 
+  upload_coverage:
+    description: Upload coverage to coveralls
+
+    executor: { name: python_base, version: "3.9.25" }
+
+    steps:
+      - checkout
+      - attach_workspace: { at: . }
+      - install_deps: { version: "3.9.25" }
+      - run:
+          name: Upload to Coveralls
+          command: |
+            pipenv run coverage combine .coverage.*
+            pipenv run coveralls
+
+  package:
+    description: Build artifacts
+
+    executor: { name: python_base, version: "3.9.25" }
+
+    steps:
+      - checkout
+      - install_deps: { version: "3.9.25" }
+      - run:
+          name: Build artifact
+          command: pipenv run python setup.py bdist_egg bdist_wheel sdist
+      - run:
+          name: Check artifacts
+          command: pipenv run twine check dist/*
+      - persist_to_workspace:
+          root: .
+          paths: [dist/*]
+
+  deploy_pypi:
+    description: Upload artifacts to PyPI
+
+    parameters:
+      repository: { type: string, default: "pypi" }
+      token_env: { type: env_var_name, default: PYPI_TOKEN }
+
+    executor: { name: python_base, version: "3.9.25" }
+
+    steps:
+      - attach_workspace: { at: . }
+      - run:
+          name: Upload to TestPyPI
+          command: >-
+            pipenv run twine upload
+            --repository << parameters.repository >>
+            --username __token__
+            --password ${<< parameters.token_env >>}
+            --skip-existing
+            dist/*
   docs:
+    description: Produce documentation from source
+
     executor:
       name: python_base
       version: "3.9.25"
@@ -78,16 +136,17 @@ jobs:
       - install_deps:
           version: "3.9.25"
       - run:
-          name: Installing documentation dependencies
-          command: pipenv install --dev -r docs/requirements.txt
-      - run:
           name: Build documentation
-          command: pipenv run sphinx-build -WavE -b html docs _build/html
+          command: |
+            pipenv install --dev -r docs/requirements.txt
+            pipenv run sphinx-build -WavE -b html docs _build/html
       - store_artifacts:
           path: _build/html
           destination: sshtunnel-docs
 
   syntax:
+    description: Run syntax validation tests
+
     executor:
       name: python_base
       version: "3.9.25"
@@ -96,9 +155,6 @@ jobs:
       - checkout
       - install_deps:
           version: "3.9.25"
-      - run:
-          name: Installing syntax checks dependencies
-          command: pipenv install --dev -r tests/requirements-syntax.txt
       - run:
           name: checking MANIFEST.in
           command: pipenv run check-manifest --ignore tox.ini,tests*,*.yml
@@ -114,90 +170,44 @@ jobs:
           name: checking CLI help
           command: pipenv run bashtest README.rst
 
-  testdeploy:
-    executor:
-      name: python_base
-      version: "3.9.25"
-
-    steps:
-      - checkout
-      - install_deps:
-          version: "3.9.25"
-      - run:
-          name: Build artifact
-          command: pipenv run python setup.py bdist_egg bdist_wheel sdist
-      - run:
-          name: Check artifacts
-          command: pipenv run twine check dist/*
-      - store_artifacts:
-          path: dist/
-      - run:
-          name: Upload to TestPyPI
-          command: >-
-            pipenv run twine upload
-            --repository testpypi
-            --username __token__
-            --password $TESTPYPI_TOKEN
-            --skip-existing
-            dist/*
-
-  deploy:
-    executor:
-      name: python_base
-      version: "3.9.25"
-
-    steps:
-      - checkout
-      - install_deps:
-          version: "3.9.25"
-      - run:
-          name: Build artifact
-          command: pipenv run python setup.py bdist_egg bdist_wheel sdist
-      - run:
-          name: Upload to PyPI
-          command: >-
-            pipenv run twine upload
-            --username __token__
-            --password $PYPI_TOKEN
-            --skip-existing
-            dist/*
-
 workflows:
-  syntax_and_docs:
+  version: 2
+
+  full_pipeline:
     jobs:
       - syntax
       - docs
-
-  test_and_deploy:
-    jobs:
       - tests:
+          requires: [syntax]
           matrix:
             parameters:
-               version:
-                 - "3.5"
-                 - "3.6"
-                 - "3.7"
-                 - "3.8"
-                 - "3.9"
-                 - "3.10"
-                 - "3.11"
-                 - "3.12"
-                 - "3.13"
-                 - "3.14" 
-
-      - testdeploy:
-          requires:
-            - tests
+              version:
+                - "3.5"
+                - "3.6"
+                - "3.7"
+                - "3.8"
+                - "3.9"
+                - "3.10"
+                - "3.11"
+                - "3.12"
+                - "3.13"
+                - "3.14"
+      - upload_coverage:
+          requires: [tests]
+      - package:
+          requires: [tests]
+      - deploy_pypi:
+          name: test_deploy
+          repository: testpypi
+          token_env: TESTPYPI_TOKEN
+          requires: [package]
       - hold:
           type: approval
-          requires:
-            - testdeploy
-          filters:
-            branches:
-              only: master
-      - deploy:
-          requires:
-            - hold
-          filters:
-            branches:
-              only: master
+          requires: [test_deploy]
+          filters: { branches: { only: master } }
+      - deploy_pypi:
+          name: production_deploy
+          repository: pypi
+          token_env: PYPI_TOKEN
+          requires: [hold]
+          filters: { branches: { only: master } }
