@@ -1786,7 +1786,7 @@ def _parse_arguments(args=None):
         metavar='IP:PORT',
         help='Local bind address sequence: '
              'ip_1:port_1 ip_2:port_2 ... ip_n:port_n\n'
-             'Elements may also be valid UNIX socket domains: \n'
+             'Elements may also be valid UNIX socket domains:\n'
              '/tmp/foo.sock /tmp/bar.sock ... /tmp/baz.sock\n'
              'Equivalent to ssh -LPORT:xxxxxxxxx:xxxx, '
              'being the local IP address optional.\n'

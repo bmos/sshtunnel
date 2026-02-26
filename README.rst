@@ -232,7 +232,7 @@ CLI usage
       ssh_address           SSH server IP address (GW for SSH tunnels)
                             set with "-- ssh_address" if immediately after -R or -L
 
-    options:
+    optional arguments:
       -h, --help            show this help message and exit
       -U SSH_USERNAME, --username SSH_USERNAME
                             SSH server account username
