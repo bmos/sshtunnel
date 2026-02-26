@@ -192,10 +192,13 @@ jobs:
 workflows:
   version: 2
 
-  full_pipeline:
+  documentation:
+    jobs:
+      - docs
+
+  check_build_deploy:
     jobs:
       - syntax
-      - docs
       - tests:
           requires: [syntax]
           matrix:
