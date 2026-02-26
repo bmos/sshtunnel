@@ -3,6 +3,7 @@ mock
 pytest
 pytest-cov
 pytest-xdist
+setuptools
 twine
 # required by twine!
 bleach<5.0.0
