@@ -30,6 +30,9 @@ commands:
             pipenv install -e .
             pipenv install --dev -r tests/requirements.txt
             pipenv install --dev -r tests/requirements-syntax.txt
+      - run:
+          name: Output Pipfile.lock
+          command: |
             cat Pipfile.lock
       - save_cache:
           key: v2-sshtunnel-{{ arch }}-<< parameters.version >>-{{ checksum "setup.py" }}-{{ checksum "tests/requirements.txt" }}-{{ checksum "tests/requirements-syntax.txt" }}
