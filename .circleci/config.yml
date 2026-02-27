@@ -9,9 +9,6 @@ executors:
     docker:
       - image: cimg/python:<< parameters.version >>
 
-orbs:
-  coveralls: coveralls/coveralls@2.2.5
-
 commands:
   install_deps:
     description: Install dependencies
@@ -63,7 +60,7 @@ commands:
 
 jobs:
   tests:
-    description: Run test suite for each python version and calculate coverage
+    description: Run test suite for each python version
 
     parameters:
       version: { type: string }
@@ -75,8 +72,6 @@ jobs:
       - install_deps
       - run:
           name: Run test suite
-          environment:
-            COVERAGE_FILE: .coverage.<< parameters.version >>
           command: >-
             pipenv run pytest tests
             --showlocals
@@ -87,24 +82,31 @@ jobs:
             --cov-report=html:test_results/coverage.html
             --cov-report=term
             --junit-xml=test_results/report.xml
+      - run:
+          name: Move coverage file
+          command: |
+            mv .coverage .coverage.<< parameters.version >>
       - persist_to_workspace:
           root: .
           paths:
             - .coverage.*
-      - coveralls/upload:
-          parallel: true
       - store_test_results:
           path: test_results
 
-  coverage:
-    description: Finalize coverage via coveralls
+  upload_coverage:
+    description: Upload coverage to coveralls
 
     executor: { name: python_base }
 
     steps:
+      - checkout
       - attach_workspace: { at: . }
-      - coveralls/upload:
-          parallel_finished: true
+      - install_deps
+      - run:
+          name: Upload to Coveralls
+          command: |
+            pipenv run coverage combine .coverage.*
+            pipenv run coveralls
 
   package:
     description: Build artifacts
@@ -213,7 +215,7 @@ workflows:
                 - "3.12"
                 - "3.13"
                 - "3.14"
-      - coverage:
+      - upload_coverage:
           requires: [tests]
       - package:
           requires: [tests]
