@@ -31,7 +31,10 @@ else:
     from io import StringIO
 
 
+sshtunnel.TUNNEL_TIMEOUT = 1
+
 # UTILS
+
 
 def get_random_string(length=12):
     """
@@ -191,7 +194,9 @@ class NullServer(paramiko.ServerInterface):
         return True
 
     def check_global_request(self, kind, msg):
-        self.log.debug('NullServer.check_global_request(kind={0})'.format(kind))
+        self.log.debug(
+            'NullServer.check_global_request(kind={0})'.format(kind)
+        )
         return True
 
     def check_channel_direct_tcpip_request(self, chanid, origin, destination):
