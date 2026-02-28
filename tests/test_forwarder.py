@@ -170,19 +170,28 @@ class NullServer(paramiko.ServerInterface):
         return paramiko.AUTH_SUCCESSFUL if _ok else paramiko.AUTH_FAILED
 
     def check_channel_request(self, kind, chanid):
-        self.log.debug('NullServer.check_channel_request()')
+        self.log.debug(
+            'NullServer.check_channel_request({0}, {1})'
+            .format(kind, chanid)
+        )
         return paramiko.OPEN_SUCCEEDED
 
     def check_channel_exec_request(self, channel, command):
-        self.log.debug('NullServer.check_channel_exec_request()')
+        self.log.debug(
+            'NullServer.check_channel_exec_request({0}, {1})'
+            .format(channel, command)
+        )
         return True
 
     def check_port_forward_request(self, address, port):
-        self.log.debug('NullServer.check_port_forward_request()')
+        self.log.debug(
+            'NullServer.check_port_forward_request({0}, {1})'
+            .format(address, port)
+        )
         return True
 
     def check_global_request(self, kind, msg):
-        self.log.debug('NullServer.check_port_forward_request()')
+        self.log.debug('NullServer.check_global_request(kind={0})'.format(kind))
         return True
 
     def check_channel_direct_tcpip_request(self, chanid, origin, destination):
