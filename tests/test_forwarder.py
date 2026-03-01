@@ -978,8 +978,6 @@ class SSHClientTest(unittest.TestCase):
             with self.assertRaises(sshtunnel.BaseSSHTunnelForwarderError):
                 self.log.info(server.local_bind_address)
 
-    @unittest.skipIf(sys.version_info < (2, 7),
-                     reason="Cannot intercept logging messages in py26")
     def test_check_tunnels(self):
         """ Test method checking if tunnels are up """
         remote_address = (self.eaddr, self.eport)
