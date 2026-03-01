@@ -1246,12 +1246,12 @@ class TestSSHClient:
                 for msg in self.sshtunnel_log_messages['info']
             )
 
-        shutil.copy(get_test_data_path(PKEY_FILE), (tmp_path / 'id_rsa'))
+        shutil.copy(get_test_data_path(PKEY_FILE), str(tmp_path / 'id_rsa'))
 
         keys = sshtunnel.SSHTunnelForwarder.get_keys(
             self.log,
             host_pkey_directories=[
-                tmp_path,
+                str(tmp_path),
             ],
         )
         assert isinstance(keys, list)
