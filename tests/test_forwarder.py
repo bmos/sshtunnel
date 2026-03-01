@@ -128,7 +128,7 @@ class MockLoggingHandler(logging.Handler, object):
         super(MockLoggingHandler, self).__init__(*args, **kwargs)
 
     def emit(self, record):
-        "Store a message from ``record`` in the instance's ``messages`` dict."
+        """Store a message from ``record`` in the instance's ``messages`` dict."""
         self.acquire()
         try:
             self.messages[record.levelname.lower()].append(record.getMessage())
@@ -233,7 +233,8 @@ class NullServer(paramiko.ServerInterface):
 
 @pytest.mark.usefixtures("tmp_path")
 class SSHClientTest(unittest.TestCase):
-    def make_socket(self):
+    @staticmethod
+    def make_socket():
         s = socket.socket()
         s.bind(('localhost', 0))
         s.listen(5)
@@ -454,7 +455,8 @@ class SSHClientTest(unittest.TestCase):
                 echo.close()
                 self.log.debug('{0} connection closed.'.format(info))
 
-    def randomize_eport(self):
+    @staticmethod
+    def randomize_eport():
         return random.randint(49152, 65535)
 
     def test_echo_server(self):
