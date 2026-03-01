@@ -77,8 +77,7 @@ jobs:
             --showlocals
             --durations=10
             -n auto
-            -W ignore::DeprecationWarning
-            --cov sshtunnel
+            --cov=sshtunnel
             --cov-report=html:test_results/coverage.html
             --cov-report=term
             --junit-xml=test_results/report.xml
