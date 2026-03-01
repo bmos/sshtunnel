@@ -9,7 +9,6 @@ import select
 import shutil
 import socket
 import sys
-import tempfile
 import threading
 import warnings
 from contextlib import contextmanager
@@ -18,6 +17,7 @@ from os import linesep, path
 
 import mock
 import paramiko
+import pytest
 
 import sshtunnel
 
@@ -231,6 +231,7 @@ class NullServer(paramiko.ServerInterface):
         return paramiko.OPEN_SUCCEEDED
 
 
+@pytest.mark.usefixtures("tmp_path")
 class SSHClientTest(unittest.TestCase):
     def make_socket(self):
         s = socket.socket()
@@ -1249,7 +1250,7 @@ class SSHClientTest(unittest.TestCase):
         """
         self.check_make_ssh_forward_server_sets_daemon(False)
 
-    def test_get_keys(self):
+    def test_get_keys(self, tmp_path):
         """Test loading keys from the paramiko Agent"""
         with self._test_server(
             (self.saddr, self.sport),
@@ -1285,15 +1286,14 @@ class SSHClientTest(unittest.TestCase):
                 )
             )
 
-        tmp_dir = tempfile.mkdtemp()
         shutil.copy(
-            get_test_data_path(PKEY_FILE), os.path.join(tmp_dir, 'id_rsa')
+            get_test_data_path(PKEY_FILE), (tmp_path / 'id_rsa')
         )
 
         keys = sshtunnel.SSHTunnelForwarder.get_keys(
             self.log,
             host_pkey_directories=[
-                tmp_dir,
+                tmp_path,
             ],
         )
         self.assertIsInstance(keys, list)
@@ -1303,7 +1303,6 @@ class SSHClientTest(unittest.TestCase):
                 for msg in self.sshtunnel_log_messages['info']
             )
         )
-        shutil.rmtree(tmp_dir)
 
 
 class AuxiliaryTest(unittest.TestCase):
