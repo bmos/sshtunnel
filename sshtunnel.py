@@ -110,7 +110,7 @@ def check_address(address):
         ValueError:
             raised when address has an incorrect format
 
-    ..code-block:: python
+    .. code-block:: python
 
         check_address(('127.0.0.1', 22))
 
@@ -530,15 +530,12 @@ class SSHTunnelForwarder(object):
 
     - Initialize a SSH tunnel to a remote host according to the input
       arguments
-
     - Optionally:
 
         * Read an SSH configuration file (typically ``~/.ssh/config``)
-
         * Load keys from a running SSH agent (i.e. Pageant, GNOME Keyring)
 
     Raises:
-
         :class:`.BaseSSHTunnelForwarderError`:
             raised by SSHTunnelForwarder class methods
 
@@ -553,7 +550,6 @@ class SSHTunnelForwarder(object):
                     from this class
 
     Keyword Arguments:
-
         ssh_address_or_host (tuple or str):
             IP or hostname of ``REMOTE GATEWAY``. It may be a two-element
             tuple (``str``, ``int``) representing IP and port respectively,
@@ -762,7 +758,6 @@ class SSHTunnelForwarder(object):
             .. deprecated:: 0.0.8 (use ``mute_exceptions`` instead)
 
     Arguments:
-
         tunnel_is_up (dict):
             Describe whether or not the other side of the tunnel was reported
             to be up (and we must close it) or not (skip shutting down that
@@ -777,8 +772,8 @@ class SSHTunnelForwarder(object):
                 When :attr:`.skip_tunnel_checkup` is disabled or the local bind
                 is a UNIX socket, the value will always be ``True``
 
-            ..code-block:: python
-              :caption: where 55550 and 55551 are the local bind ports
+            .. code-block:: python
+               :caption: where 55550 and 55551 are the local bind ports
 
                 {
                     ('127.0.0.1', 55550): True,   # this tunnel is up
@@ -970,7 +965,7 @@ class SSHTunnelForwarder(object):
         allow_agent=True,  # look for keys from an SSH agent
         host_pkey_directories=None,  # look for keys in ~/.ssh
         *args,
-        **kwargs,  # for backwards compatibility
+        **kwargs  # for backwards compatibility
     ):
         self.logger = logger or create_logger()
 
@@ -1816,21 +1811,22 @@ def open_tunnel(*args, **kwargs):
 
         See :class:`SSHTunnelForwarder` for keyword arguments
 
-    ..code-block:: python
+    .. code-block:: python
 
         from sshtunnel import open_tunnel
 
-        with open_tunnel(SERVER,
-                         ssh_username=SSH_USER,
-                         ssh_port=22,
-                         ssh_password=SSH_PASSWORD,
-                         remote_bind_address=(REMOTE_HOST, REMOTE_PORT),
-                         local_bind_address=('', LOCAL_PORT)) as server:
+        with open_tunnel(
+            SERVER,
+            ssh_username=SSH_USER,
+            ssh_port=22,
+            ssh_password=SSH_PASSWORD,
+            remote_bind_address=(REMOTE_HOST, REMOTE_PORT),
+            local_bind_address=('', LOCAL_PORT)
+        ) as server:
             def do_something(port):
                 pass
 
             print("LOCAL PORTS:", server.local_bind_port)
-
             do_something(server.local_bind_port)
 
     """
