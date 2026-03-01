@@ -6,8 +6,9 @@ https://github.com/pypa/sampleproject
 """
 
 import re
-from os import path
 from codecs import open  # To use a consistent encoding
+from os import path
+
 from setuptools import setup  # Always prefer setuptools over distutils
 
 here = path.abspath(path.dirname(__file__))

@@ -13,14 +13,14 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
-import sys
 import os
-
-import sshtunnel
+import sys
 
 # Patch to disable warning on non-local image
 import sphinx.environment
 from docutils.utils import get_source_line
+
+import sshtunnel
 
 
 def _warn_node(self, msg, node):

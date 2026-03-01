@@ -1,7 +1,7 @@
 import logging
-import sshtunnel
 import os
 
+import sshtunnel
 
 if __name__ == '__main__':
     path = os.path.join(
