@@ -17,6 +17,9 @@ commands:
       include_syntax:
         type: boolean
         default: false
+      include_docs:
+        type: boolean
+        default: false
 
     steps:
       - restore_cache:
@@ -25,7 +28,7 @@ commands:
             - v2-sshtunnel-{{ arch }}-
       - run:
           name: Install sshtunnel
-          command:  >-
+          command: >-
             pipenv
             --python $(which python)
             install
@@ -34,7 +37,7 @@ commands:
             .
       - run:
           name: Install dev dependencies
-          command:  >-
+          command: >-
             pipenv
             --python $(which python)
             install
@@ -46,13 +49,25 @@ commands:
           steps:
             - run:
                 name: Install syntax dependencies
-                command:  >-
+                command: >-
                   pipenv
                   --python $(which python)
                   install
                   --skip-lock
                   --dev
                   -r tests/requirements-syntax.txt
+      - when:
+          condition: << parameters.include_docs >>
+          steps:
+            - run:
+                name: Install docs dependencies
+                command: >-
+                  pipenv
+                  --python $(which python)
+                  install
+                  --skip-lock
+                  --dev
+                  -r docs/requirements.txt
       - save_cache:
           key: v2-sshtunnel-{{ arch }}-{{ checksum "setup.py" }}-{{ checksum "tests/requirements.txt" }}-{{ checksum "tests/requirements-syntax.txt" }}
           paths:
@@ -155,12 +170,18 @@ jobs:
 
     steps:
       - checkout
-      - install_deps
+      - install_deps: { include_docs: true }
       - run:
           name: Build documentation
-          command: |
-            pipenv install --dev -r docs/requirements.txt
-            pipenv run sphinx-build -WavE -b html docs _build/html
+          command: >-
+              pipenv
+              --python $(which python)
+              run
+              sphinx-build
+              -WavE
+              -b html
+              docs
+              _build/html
       - store_artifacts:
           path: _build/html
           destination: sshtunnel-docs
