@@ -5,6 +5,7 @@ import getpass
 import logging
 import os
 import random
+import re
 import select
 import shutil
 import socket
@@ -537,6 +538,20 @@ class TestSSHClient:
         server.start()
         self._check_server_auth()
         server.stop()
+
+    def test_open_tunnel_block_on_close_deprecation(self):
+        """Ensure block_on_close keyword argument posts deprecation warning."""
+        with pytest.warns(
+            DeprecationWarning,
+            match=re.escape("You should use either .stop() or .stop(force=True)"),
+        ):
+            sshtunnel.open_tunnel(
+                (self.saddr, self.sport),
+                ssh_username=SSH_USERNAME,
+                ssh_password=SSH_PASSWORD,
+                remote_bind_address=(self.eaddr, self.eport),
+                block_on_close=True,
+            )
 
     def test_sshaddress_and_sshaddressorhost_mutually_exclusive(self):
         """
