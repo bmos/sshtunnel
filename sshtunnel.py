@@ -2081,8 +2081,14 @@ def _cli_main(args=None, **extras):
     -d (host_pkey_directories), look for keys on these folders
     """
     arguments = _parse_arguments(args)
+
     # Remove all "None" input values
     _remove_none_values(arguments)
+
+    for old_key in ['ssh_address', 'ssh_host']:
+        if old_key in arguments:
+            arguments['ssh_address_or_host'] = arguments.pop(old_key)
+
     verbosity = min(arguments.pop('verbose'), 4)
     levels = [
         logging.ERROR,
@@ -2092,6 +2098,7 @@ def _cli_main(args=None, **extras):
         TRACE_LEVEL,
     ]
     arguments.setdefault('debug_level', levels[verbosity])
+
     # do this while supporting py27 instead of merging dicts
     for extra, value in extras.items():
         arguments.setdefault(extra, value)
