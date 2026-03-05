@@ -435,7 +435,14 @@ class TestSSHClient:
             self.log.info(info + ' accept()')
             echo = socket.create_connection((self.eaddr, self.eport))
             while self.is_server_working:
-                rqst, _, _ = select.select([schan, echo], [], [], timeout)
+                inputs = [
+                    obj for obj in [schan, echo] if (
+                        obj is not None and hasattr(obj, 'fileno')
+                    )
+                ]
+                if len(inputs) < 2:
+                    continue
+                rqst, _, _ = select.select(inputs, [], [], timeout)
                 if schan in rqst:
                     data = schan.recv(1024)
                     self.log.debug('{0} -->: {1}'.format(info, repr(data)))
