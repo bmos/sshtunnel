@@ -426,6 +426,9 @@ class TestSSHClient:
     def _do_forwarding(self, timeout=sshtunnel.SSH_TIMEOUT):
         self.log.debug('forward-server Start')
         self.ssh_event.wait(THREADS_TIMEOUT)  # wait for SSH server's transport
+        info = ""
+        schan = None
+        echo = None
         try:
             schan = self.ts.accept(timeout=timeout)
             info = 'forward-server schan <> echo'
@@ -744,10 +747,14 @@ class TestSSHClient:
         ]
     )
     def test_deprecation_warnings_are_shown(self, deprecated_arg):
-        """Test that using deprecated arguments logs the correct DeprecationWarning"""
+        """
+        Deprecated arguments should log the correct DeprecationWarning.
+        """
 
         replacement = sshtunnel._DEPRECATIONS[deprecated_arg]
-        expected_msg = f"'{deprecated_arg}' is DEPRECATED use '{replacement}' instead"
+        expected_msg = f"""
+        '{deprecated_arg}' is DEPRECATED use '{replacement}' instead
+        """
 
         _kwargs = {
             'ssh_username': SSH_USERNAME,
@@ -1484,7 +1491,9 @@ class TestAuxiliary:
 
     def test_check_address(self):
         """Test that an exception is raised with incorrect bind addresses"""
-        address_list: List[Union[Tuple, str]] = [('10.0.0.1', 10000), ('10.0.0.1', 10001)]
+        address_list: List[Union[Tuple, str]] = [
+            ('10.0.0.1', 10000), ('10.0.0.1', 10001)
+        ]
         if os.name == 'posix':  # UNIX sockets supported by the platform
             address_list.append('/tmp/unix-socket')
             # UNIX sockets not supported on remote addresses
