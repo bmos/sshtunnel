@@ -2092,7 +2092,7 @@ def _cli_main(args=None, **extras):
         TRACE_LEVEL,
     ]
     arguments.setdefault('debug_level', levels[verbosity])
-    # do this while supporting py27/py34 instead of merging dicts
+    # do this while supporting py27 instead of merging dicts
     for extra, value in extras.items():
         arguments.setdefault(extra, value)
     with open_tunnel(**arguments) as tunnel:

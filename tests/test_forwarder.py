@@ -15,6 +15,7 @@ import warnings
 from contextlib import contextmanager
 from functools import partial
 from os import linesep, path
+from typing import List, Tuple, Union
 
 import mock
 import paramiko
@@ -371,7 +372,7 @@ class TestSSHClient:
         self.threads[t.name] = t
         t.start()
         self.ts.start_server(self.ssh_event, server)
-        self.wait_for_thread(t, timeout=None, who='ssh-server')
+        self.wait_for_thread(t, who='ssh-server')
         self.log.info('ssh-server shutting down')
         self.running_threads.remove('ssh-server')
 
@@ -415,7 +416,7 @@ class TestSSHClient:
             self.is_server_working = False
             if 'forward-server' in self.threads:
                 t = self.threads['forward-server']
-                self.wait_for_thread(t, timeout=None, who='echo-server')
+                self.wait_for_thread(t, who='echo-server')
                 self.running_threads.remove('forward-server')
             for s in socks:
                 s.close()
@@ -543,7 +544,9 @@ class TestSSHClient:
         """Ensure block_on_close keyword argument posts deprecation warning."""
         with pytest.warns(
             DeprecationWarning,
-            match=re.escape("You should use either .stop() or .stop(force=True)"),
+            match=re.escape(
+                "You should use either .stop() or .stop(force=True)"
+            ),
         ):
             sshtunnel.open_tunnel(
                 (self.saddr, self.sport),
@@ -558,7 +561,7 @@ class TestSSHClient:
         Test that deprecate argument ssh_address cannot be used together with
         ssh_address_or_host
         """
-        with pytest.raises(ValueError):
+        with pytest.warns(DeprecationWarning), pytest.raises(ValueError):
             open_tunnel(
                 ssh_address_or_host=(self.saddr, self.sport),
                 ssh_address=(self.saddr, self.sport),
@@ -572,7 +575,7 @@ class TestSSHClient:
         Test that deprecate argument ssh_host cannot be used together with
         ssh_address_or_host
         """
-        with pytest.raises(ValueError):
+        with pytest.warns(DeprecationWarning), pytest.raises(ValueError):
             open_tunnel(
                 ssh_address_or_host=(self.saddr, self.sport),
                 ssh_host=(self.saddr, self.sport),
@@ -730,53 +733,34 @@ class TestSSHClient:
                 ssh_config_file=None,
             )
 
-    def test_deprecate_warnings_are_shown(self):
-        """Test that when using deprecate arguments a warning is logged"""
-        if sys.platform.startswith('win'):
-            pytest.skip('Need to fix test on Windows')
+    @pytest.mark.skipif(sys.platform.startswith('win'), reason="Need to fix test on Windows")
+    @pytest.mark.parametrize(
+        'deprecated_arg',
+        [
+            'ssh_address',
+            'ssh_host',
+            'raise_exception_if_any_forwarder_have_a_problem',
+            'ssh_private_key',
+        ]
+    )
+    def test_deprecation_warnings_are_shown(self, deprecated_arg):
+        """Test that using deprecated arguments logs the correct DeprecationWarning"""
 
-        warnings.simplefilter('always')  # don't ignore DeprecationWarnings
+        replacement = sshtunnel._DEPRECATIONS[deprecated_arg]
+        expected_msg = f"'{deprecated_arg}' is DEPRECATED use '{replacement}' instead"
 
-        with warnings.catch_warnings(record=True) as w:
-            for deprecated_arg in ['ssh_address', 'ssh_host']:
-                _kwargs = {
-                    deprecated_arg: (self.saddr, self.sport),
-                    'ssh_username': SSH_USERNAME,
-                    'ssh_password': SSH_PASSWORD,
-                    'remote_bind_address': (self.eaddr, self.eport),
-                }
-                open_tunnel(**_kwargs)
-                logged_message = (
-                    "'{0}' is DEPRECATED use '{1}' instead".format(
-                        deprecated_arg, sshtunnel._DEPRECATIONS[deprecated_arg]
-                    )
-                )
-                assert issubclass(w[-1].category, DeprecationWarning)
-                assert logged_message == str(w[-1].message)
+        _kwargs = {
+            'ssh_username': SSH_USERNAME,
+            'ssh_password': SSH_PASSWORD,
+            'remote_bind_address': (self.eaddr, self.eport),
+            deprecated_arg: (self.saddr, self.sport),
+        }
 
-        # other deprecated arguments
-        with warnings.catch_warnings(record=True) as w:
-            for deprecated_arg in [
-                'raise_exception_if_any_forwarder_have_a_problem',
-                'ssh_private_key',
-            ]:
-                _kwargs = {
-                    'ssh_address_or_host': (self.saddr, self.sport),
-                    'ssh_username': SSH_USERNAME,
-                    'ssh_password': SSH_PASSWORD,
-                    'remote_bind_address': (self.eaddr, self.eport),
-                    deprecated_arg: (self.saddr, self.sport),
-                }
-                open_tunnel(**_kwargs)
-                logged_message = (
-                    "'{0}' is DEPRECATED use '{1}' instead".format(
-                        deprecated_arg, sshtunnel._DEPRECATIONS[deprecated_arg]
-                    )
-                )
-                assert issubclass(w[-1].category, DeprecationWarning)
-                assert logged_message == str(w[-1].message)
+        if deprecated_arg not in ('ssh_address', 'ssh_host'):
+            _kwargs['ssh_address_or_host'] = (self.saddr, self.sport)
 
-        warnings.simplefilter('default')
+        with pytest.warns(DeprecationWarning, match=expected_msg):
+            open_tunnel(**_kwargs)
 
     def test_gateway_unreachable_raises_exception(self):
         """
@@ -1144,13 +1128,13 @@ class TestSSHClient:
         """
         Test that Tracing mode may be enabled for more fine-grained logs
         """
-        logger = sshtunnel.create_logger(logger=self.log, loglevel='TRACE')
+        self.log = sshtunnel.create_logger(logger=self.log, loglevel='TRACE')
         with self._test_server(
             (self.saddr, self.sport),
             ssh_username=SSH_USERNAME,
             ssh_password=SSH_PASSWORD,
             remote_bind_address=(self.eaddr, self.eport),
-            logger=logger,
+            logger=self.log,
         ) as server:
             server.logger = sshtunnel.create_logger(
                 logger=server.logger, loglevel='TRACE'
@@ -1160,12 +1144,12 @@ class TestSSHClient:
             s = socket.create_connection(('127.0.0.1', server.local_bind_port))
             s.send(message)
             s.recv(100)
-            s.close
+            s.close()
             log = 'send to {0}'.format((self.eaddr, self.eport))
 
         assert any(log in msg for msg in self.sshtunnel_log_messages['trace'])
         # set loglevel back to the original value
-        logger = sshtunnel.create_logger(logger=self.log, loglevel='DEBUG')
+        self.log = sshtunnel.create_logger(logger=self.log, loglevel='DEBUG')
 
     def test_tunnel_bindings_contain_active_tunnels(self):
         """
@@ -1448,7 +1432,7 @@ class TestAuxiliary:
     def test_str(self):
         server = open_tunnel(
             'test',
-            ssh_private_key=get_test_data_path(PKEY_FILE),
+            ssh_pkey=get_test_data_path(PKEY_FILE),
             remote_bind_address=('10.0.0.1', 8080),
         )
         _str = str(server).split(linesep)
@@ -1467,26 +1451,40 @@ class TestAuxiliary:
             'raise_exception_if_any_forwarder_have_a_problem': True,
         }
         for item in kwargs:
-            assert kwargs[
-                item
-            ] == sshtunnel.SSHTunnelForwarder._process_deprecated(
-                None, item, kwargs.copy()
-            )
+            with pytest.warns(
+                DeprecationWarning,
+                match=f"'{item}' is DEPRECATED use '.+' instead",
+            ):
+                assert kwargs[
+                    item
+                ] == sshtunnel.SSHTunnelForwarder._process_deprecated(
+                    None, item, kwargs.copy()
+                )
         # use both deprecated and not None new attribute should raise exception
         for item in kwargs:
-            with pytest.raises(ValueError):
+            with warnings.catch_warnings(
+                category=DeprecationWarning
+            ), pytest.raises(
+                ValueError, match="You can't use both '.+' and '.+'"
+            ):
+                warnings.simplefilter("ignore")
                 sshtunnel.SSHTunnelForwarder._process_deprecated(
                     'some value', item, kwargs.copy()
                 )
         # deprecated attribute not in deprecation list should raise exception
-        with pytest.raises(ValueError):
+        with warnings.catch_warnings(
+            category=DeprecationWarning
+        ), pytest.raises(
+            ValueError, match="item not included in deprecations list"
+        ):
+            warnings.simplefilter("ignore")
             sshtunnel.SSHTunnelForwarder._process_deprecated(
                 'some value', 'item', kwargs.copy()
             )
 
     def test_check_address(self):
         """Test that an exception is raised with incorrect bind addresses"""
-        address_list = [('10.0.0.1', 10000), ('10.0.0.1', 10001)]
+        address_list: List[Union[Tuple, str]] = [('10.0.0.1', 10000), ('10.0.0.1', 10001)]
         if os.name == 'posix':  # UNIX sockets supported by the platform
             address_list.append('/tmp/unix-socket')
             # UNIX sockets not supported on remote addresses
