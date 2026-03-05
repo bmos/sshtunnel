@@ -743,7 +743,6 @@ class TestSSHClient:
                 ssh_config_file=None,
             )
 
-    @pytest.mark.skipif(sys.platform.startswith('win'), reason="Need to fix test on Windows")
     @pytest.mark.parametrize(
         'deprecated_arg',
         [
@@ -759,9 +758,7 @@ class TestSSHClient:
         """
 
         replacement = sshtunnel._DEPRECATIONS[deprecated_arg]
-        expected_msg = f"""
-        '{deprecated_arg}' is DEPRECATED use '{replacement}' instead
-        """
+        expected_msg = f"'{deprecated_arg}' is DEPRECATED use '{replacement}' instead"
 
         _kwargs = {
             'ssh_username': SSH_USERNAME,
