@@ -138,7 +138,7 @@ def run_mongo_query(port, query=MONGO_QUERY):
 def create_tunnel():
     logging.info('Creating SSHTunnelForwarder... (sshtunnel v%s, paramiko v%s)',
                  sshtunnel.__version__, paramiko.__version__)
-    tunnel = SSHTunnelForwarder(
+    return SSHTunnelForwarder(
         SSH_SERVER_ADDRESS,
         ssh_username=SSH_SERVER_USERNAME,
         ssh_pkey=SSH_PKEY,
@@ -148,7 +148,6 @@ def create_tunnel():
         ],
         logger=logger,
     )
-    return tunnel
 
 
 def start(tunnel):
