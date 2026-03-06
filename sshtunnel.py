@@ -1212,7 +1212,6 @@ class SSHTunnelForwarder(object):
                               'dsa': paramiko.DSSKey,
                               'ecdsa': paramiko.ECDSAKey}
         if hasattr(paramiko, 'Ed25519Key'):
-            # NOQA: new in paramiko>=2.2: http://docs.paramiko.org/en/stable/api/keys.html#module-paramiko.ed25519key
             paramiko_key_types['ed25519'] = paramiko.Ed25519Key
         for directory in host_pkey_directories:
             for keytype in paramiko_key_types.keys():
@@ -1391,7 +1390,6 @@ class SSHTunnelForwarder(object):
         ssh_pkey = None
         key_types = (paramiko.RSAKey, paramiko.DSSKey, paramiko.ECDSAKey)
         if hasattr(paramiko, 'Ed25519Key'):
-            # NOQA: new in paramiko>=2.2: http://docs.paramiko.org/en/stable/api/keys.html#module-paramiko.ed25519key
             key_types += (paramiko.Ed25519Key, )
         for pkey_class in (key_type,) if key_type else key_types:
             try:
