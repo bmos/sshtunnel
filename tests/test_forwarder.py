@@ -1382,13 +1382,15 @@ class AuxiliaryTest(unittest.TestCase):
                   'ssh_address': '10.0.0.1',
                   'ssh_private_key': 'testrsa.key',
                   'raise_exception_if_any_forwarder_have_a_problem': True}
-        for item in kwargs:
-            self.assertEqual(kwargs[item],
-                             sshtunnel.SSHTunnelForwarder._process_deprecated(
-                None,
-                item,
-                kwargs.copy()
-            ))
+        for item, value in kwargs.items():
+            self.assertEqual(
+                value,
+                sshtunnel.SSHTunnelForwarder._process_deprecated(
+                    None,
+                    item,
+                    kwargs.copy()
+                )
+            )
         # use both deprecated and not None new attribute should raise exception
         for item in kwargs:
             with self.assertRaises(ValueError):
