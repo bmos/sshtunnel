@@ -299,7 +299,6 @@ class BaseSSHTunnelForwarderError(Exception):
 
 class HandlerSSHTunnelForwarderError(BaseSSHTunnelForwarderError):
     """ Exception for Tunnel forwarder errors """
-    pass
 
 
 ########################
