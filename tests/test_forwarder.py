@@ -1400,5 +1400,5 @@ class AuxiliaryTest(unittest.TestCase):
         self.assertIsNone(sshtunnel.check_addresses(address_list))
         with self.assertRaises(ValueError):
             sshtunnel.check_address('this is not valid')
-        with self.assertRaises(ValueError):
+        with self.assertRaises(TypeError):
             sshtunnel.check_address(-1)  # that's not valid either

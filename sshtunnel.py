@@ -120,7 +120,7 @@ def check_address(address):
             raise ValueError('ADDRESS not a valid socket domain socket ({0})'
                              .format(address))
     else:
-        raise ValueError('ADDRESS is not a tuple, string, or character buffer '
+        raise TypeError('ADDRESS is not a tuple, string, or character buffer '
                          '({0})'.format(type(address).__name__))
 
 
