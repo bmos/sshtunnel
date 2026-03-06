@@ -140,22 +140,27 @@ class NullServer(paramiko.ServerInterface):
         super(NullServer, self).__init__(*args, **kwargs)
 
     def check_channel_forward_agent_request(self, channel):
-        self.log.debug('NullServer.check_channel_forward_agent_request() {0}'
-                       .format(channel))
+        self.log.debug(
+            'NullServer.check_channel_forward_agent_request() %s', channel
+        )
         return False
 
     def get_allowed_auths(self, username):
         allowed_auths = 'publickey{0}'.format(
             ',password' if username == SSH_USERNAME else ''
         )
-        self.log.debug('NullServer >> allowed auths for {0}: {1}'
-                       .format(username, allowed_auths))
+        self.log.debug(
+            'NullServer >> allowed auths for %s: %s', username, allowed_auths
+        )
         return allowed_auths
 
     def check_auth_password(self, username, password):
         _ok = (username == SSH_USERNAME and password == SSH_PASSWORD)
-        self.log.debug('NullServer >> password for {0} {1}OK'
-                       .format(username, '' if _ok else 'NOT-'))
+        self.log.debug(
+            'NullServer >> password for %s %sOK',
+            username,
+            '' if _ok else 'NOT-'
+        )
         return paramiko.AUTH_SUCCESSFUL if _ok else paramiko.AUTH_FAILED
 
     def check_auth_publickey(self, username, key):
@@ -167,8 +172,11 @@ class NullServer(paramiko.ServerInterface):
             )
         except KeyError:
             _ok = False
-        self.log.debug('NullServer >> pkey authentication for {0} {1}OK'
-                       .format(username, '' if _ok else 'NOT-'))
+        self.log.debug(
+            'NullServer >> pkey authentication for %s %sOK',
+            username,
+            '' if _ok else 'NOT-'
+        )
         return paramiko.AUTH_SUCCESSFUL if _ok else paramiko.AUTH_FAILED
 
     def check_channel_request(self, kind, chanid):
@@ -188,9 +196,13 @@ class NullServer(paramiko.ServerInterface):
         return True
 
     def check_channel_direct_tcpip_request(self, chanid, origin, destination):
-        self.log.debug('NullServer.check_channel_direct_tcpip_request'
-                       '(chanid={0}) {1} -> {2}'
-                       .format(chanid, origin, destination))
+        self.log.debug(
+            'NullServer.%s (chanid=%s) %s -> %s',
+            'check_channel_direct_tcpip_request',
+            chanid,
+            origin,
+            destination
+        )
         return paramiko.OPEN_SUCCEEDED
 
 
@@ -223,13 +235,11 @@ class SSHClientTest(unittest.TestCase):
     def setUp(self):
         super(SSHClientTest, self).setUp()
         self.log.debug('*' * 80)
-        self.log.info('setUp for: {0}()'.format(self._testMethodName.upper()))
+        self.log.info('setUp for: %s()', self._testMethodName.upper())
         self.ssockl, self.saddr, self.sport = self.make_socket()
         self.esockl, self.eaddr, self.eport = self.make_socket()
-        self.log.info("Socket for ssh-server: {0}:{1}"
-                      .format(self.saddr, self.sport))
-        self.log.info("Socket for echo-server: {0}:{1}"
-                      .format(self.eaddr, self.eport))
+        self.log.info("Socket for ssh-server: %s:%s", self.saddr, self.sport)
+        self.log.info("Socket for echo-server: %s:%s", self.eaddr, self.eport)
         self.ssh_event = threading.Event()
 
         self.running_threads = []
@@ -239,14 +249,15 @@ class SSHClientTest(unittest.TestCase):
         self._sshtunnel_log_handler.reset()
 
     def tearDown(self):
-        self.log.info('tearDown for: {0}()'
-                      .format(self._testMethodName.upper()))
+        self.log.info('tearDown for: %s()', self._testMethodName.upper())
         self.stop_echo_and_ssh_server()
         for thread in self.running_threads:
             x = self.threads[thread]
-            self.log.info('thread {0} ({1})'
-                          .format(thread,
-                                  'alive' if x.is_alive() else 'defunct'))
+            self.log.info(
+                'thread %s (%s)',
+                thread,
+                'alive' if x.is_alive() else 'defunct'
+            )
 
         while self.running_threads:
             for thread in self.running_threads:
@@ -254,18 +265,18 @@ class SSHClientTest(unittest.TestCase):
                 self.wait_for_thread(self.threads[thread],
                                      who='tearDown')
                 if not x.is_alive():
-                    self.log.info('thread {0} now stopped'.format(thread))
+                    self.log.info('thread %s now stopped', thread)
 
         for attr in ['server', 'tc', 'ts', 'socks', 'ssockl', 'esockl']:
             if hasattr(self, attr):
-                self.log.info('tearDown() {0}'.format(attr))
+                self.log.info('tearDown() %s', attr)
                 getattr(self, attr).close()
 
     def wait_for_thread(self, thread, timeout=THREADS_TIMEOUT, who=None):
         if thread.is_alive():
-            self.log.debug('{0}waiting for {1} to end...'
-                           .format('{0} '.format(who) if who else '',
-                                   thread.name))
+            self.log.debug(
+                '%s waiting for %s to end...', who or '', thread.name
+            )
             thread.join(timeout)
 
     def _do_forwarding(self, timeout=sshtunnel.SSH_TIMEOUT):
@@ -274,7 +285,7 @@ class SSHClientTest(unittest.TestCase):
         try:
             schan = self.ts.accept(timeout=timeout)
             info = "forward-server schan <> echo"
-            self.log.info(info + " accept()")
+            self.log.info("%s accept()", info)
             echo = socket.create_connection(
                 (self.eaddr, self.eport)
             )
@@ -285,28 +296,28 @@ class SSHClientTest(unittest.TestCase):
                                            timeout)
                 if schan in rqst:
                     data = schan.recv(1024)
-                    self.log.debug('{0} -->: {1}'.format(info, repr(data)))
+                    self.log.debug('%s -->: %s', info, repr(data))
                     echo.send(data)
                     if len(data) == 0:
                         break
                 if echo in rqst:
                     data = echo.recv(1024)
-                    self.log.debug('{0} <--: {1}'.format(info, repr(data)))
+                    self.log.debug('%s <--: %s', info, repr(data))
                     schan.send(data)
                     if len(data) == 0:
                         break
             self.log.info('<<< forward-server received STOP signal')
         except socket.error:
-            self.log.critical('{0} sending RST'.format(info))
+            self.log.critical('%s sending RST', info)
         # except Exception as e:
         #     # we reach this point usually when schan is None (paramiko bug?)
         #     self.log.critical(repr(e))
         finally:
             if schan:
-                self.log.debug('{0} closing connection...'.format(info))
+                self.log.debug('%s closing connection...', info)
                 schan.close()
                 echo.close()
-                self.log.debug('{0} connection closed.'.format(info))
+                self.log.debug('%s connection closed.', info)
 
     def _run_ssh_server(self):
         self.log.info('ssh-server Start')
@@ -383,8 +394,7 @@ class SSHClientTest(unittest.TestCase):
                         # handle the server socket
                         try:
                             client, address = self.esockl.accept()
-                            self.log.info('echo-server accept() {0}'
-                                          .format(address))
+                            self.log.info('echo-server accept() %s', address)
                         except OSError:
                             self.log.info('echo-server accept() OSError')
                             break
@@ -393,8 +403,7 @@ class SSHClientTest(unittest.TestCase):
                         # handle all other sockets
                         try:
                             data = s.recv(1000)
-                            self.log.info('echo-server echoing {0}'
-                                          .format(data))
+                            self.log.info('echo-server echoing %s', data)
                             s.send(data)
                         except OSError:
                             self.log.warning('echo-server OSError')
@@ -404,7 +413,7 @@ class SSHClientTest(unittest.TestCase):
                             socks.remove(s)
             self.log.info('<<< echo-server received STOP signal')
         except AttributeError as e:
-            self.log.info('echo-server got Exception: {0}'.format(repr(e)))
+            self.log.info('echo-server got Exception: %s', repr(e))
         finally:
             self.is_server_working = False
             if 'forward-server' in self.threads:
@@ -439,8 +448,10 @@ class SSHClientTest(unittest.TestCase):
             local_bind_addr = ('127.0.0.1', server.local_bind_port)
             self.log.info('_test_server(): try connect!')
             s = socket.create_connection(local_bind_addr)
-            self.log.info('_test_server(): connected from {0}! try send!'
-                          .format(s.getsockname()))
+            self.log.info(
+                '_test_server(): connected from %s! try send!',
+                s.getsockname()
+            )
             s.send(message)
             self.log.info('_test_server(): sent!')
             z = (s.recv(1000))
