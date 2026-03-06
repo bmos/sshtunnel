@@ -322,7 +322,7 @@ class SSHClientTest(unittest.TestCase):
     def _run_ssh_server(self):
         self.log.info('ssh-server Start')
         try:
-            self.socks, addr = self.ssockl.accept()
+            self.socks, _ = self.ssockl.accept()
         except socket.timeout:
             self.log.error('ssh-server connection timed out!')
             self.running_threads.remove('ssh-server')

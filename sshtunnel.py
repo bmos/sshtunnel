@@ -416,7 +416,7 @@ class _ForwardServer(socketserver.TCPServer):  # Not Threading
         socketserver.TCPServer.__init__(self, *args, **kwargs)
 
     def handle_error(self, request, client_address):
-        (exc_class, exc, tb) = sys.exc_info()
+        (_, exc, _) = sys.exc_info()
         local_side = request.getsockname()
         remote_side = self.remote_address
         self.logger.error(
