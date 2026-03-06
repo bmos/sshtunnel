@@ -30,13 +30,13 @@ except ImportError:
 
 import paramiko
 
-if sys.version_info[0] < 3:  # pragma: no cover
+if sys.version_info[0] < 3:
     import Queue as queue
     import SocketServer as socketserver
 
     string_types = basestring  # noqa: F821 undefined name
     input_ = raw_input  # noqa: F821 undefined name
-else:  # pragma: no cover
+else:
     import queue
     import socketserver
     string_types = str
@@ -370,7 +370,7 @@ class _ForwardHandler(socketserver.BaseRequestHandler):
                 src_addr=src_address,
                 timeout=TUNNEL_TIMEOUT
             )
-        except (paramiko.SSHException, EnvironmentError) as e:  # pragma: no cover
+        except (paramiko.SSHException, EnvironmentError) as e:
             type_msg = 'ssh ' if isinstance(e, paramiko.SSHException) else ''
             exc_msg = 'open new channel {0}error: {1}'.format(type_msg, e)
             log_msg = '{0} {1}'.format(self.info, exc_msg)
