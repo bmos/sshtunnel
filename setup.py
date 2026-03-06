@@ -47,7 +47,7 @@ setup(
 
     # The project's main homepage.
     url=url,
-    download_url=ppa + version + '.zip',  # noqa
+    download_url=ppa + version + '.zip',
 
     # Author details
     author='Pahaz White',
