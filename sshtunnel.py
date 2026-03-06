@@ -1753,7 +1753,7 @@ def open_tunnel(*args, **kwargs):
     """
     # Attach a console handler to the logger or create one if not passed
     loglevel = kwargs.pop('debug_level', None)
-    logger = kwargs.get('logger', None) or create_logger(loglevel=loglevel)
+    logger = kwargs.get('logger') or create_logger(loglevel=loglevel)
     kwargs['logger'] = logger
 
     ssh_address_or_host = kwargs.pop('ssh_address_or_host', None)
