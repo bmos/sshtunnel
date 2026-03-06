@@ -6,6 +6,7 @@ https://github.com/pypa/sampleproject
 """
 
 import re
+from ast import literal_eval
 from codecs import open  # To use a consistent encoding
 from os import path
 
@@ -27,7 +28,7 @@ with open(path.join(here, 'changelog.rst'), encoding='utf-8') as f:
 
 with open(path.join(here, name + '.py'), encoding='utf-8') as f:
     data = f.read()
-    version = eval(re.search("__version__[ ]*=[ ]*([^\r\n]+)", data).group(1))
+    version = literal_eval(re.search("__version__[ ]*=[ ]*([^\r\n]+)", data).group(1))
 
 
 setup(

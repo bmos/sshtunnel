@@ -5,6 +5,7 @@ import sys
 import threading
 import time
 import traceback
+from ast import literal_eval
 
 import paramiko
 
@@ -27,7 +28,7 @@ PG_DATABASE_NAME = 'main'
 PG_USERNAME = 'postgres'
 PG_PASSWORD = 'postgres'
 PG_QUERY = 'select version()'
-PG_EXPECT = eval(
+PG_EXPECT = literal_eval(
     """('PostgreSQL 13.0 (Debian 13.0-1.pgdg100+1) on x86_64-pc-linux-gnu, compiled by gcc (Debian 8.3.0-6) 8.3.0, 64-bit',)""")
 
 MYSQL_DATABASE_NAME = 'main'
@@ -40,7 +41,7 @@ MONGO_DATABASE_NAME = 'main'
 MONGO_USERNAME = 'mongo'
 MONGO_PASSWORD = 'mongo'
 MONGO_QUERY = lambda client, db: client.server_info()
-MONGO_EXPECT = eval(
+MONGO_EXPECT = literal_eval(
     """{'version': '3.6.23', 'gitVersion': 'd352e6a4764659e0d0350ce77279de3c1f243e5c', 'modules': [], 'allocator': 'tcmalloc', 'javascriptEngine': 'mozjs', 'sysInfo': 'deprecated', 'versionArray': [3, 6, 23, 0], 'openssl': {'running': 'OpenSSL 1.0.2g  1 Mar 2016', 'compiled': 'OpenSSL 1.0.2g  1 Mar 2016'}, 'buildEnvironment': {'distmod': 'ubuntu1604', 'distarch': 'x86_64', 'cc': '/opt/mongodbtoolchain/v2/bin/gcc: gcc (GCC) 5.4.0', 'ccflags': '-fno-omit-frame-pointer -fno-strict-aliasing -ggdb -pthread -Wall -Wsign-compare -Wno-unknown-pragmas -Winvalid-pch -Werror -O2 -Wno-unused-local-typedefs -Wno-unused-function -Wno-deprecated-declarations -Wno-unused-but-set-variable -Wno-missing-braces -fstack-protector-strong -fno-builtin-memcmp', 'cxx': '/opt/mongodbtoolchain/v2/bin/g++: g++ (GCC) 5.4.0', 'cxxflags': '-Woverloaded-virtual -Wno-maybe-uninitialized -std=c++14', 'linkflags': '-pthread -Wl,-z,now -rdynamic -Wl,--fatal-warnings -fstack-protector-strong -fuse-ld=gold -Wl,--build-id -Wl,--hash-style=gnu -Wl,-z,noexecstack -Wl,--warn-execstack -Wl,-z,relro', 'target_arch': 'x86_64', 'target_os': 'linux'}, 'bits': 64, 'debug': False, 'maxBsonObjectSize': 16777216, 'storageEngines': ['devnull', 'ephemeralForTest', 'mmapv1', 'wiredTiger'], 'ok': 1.0}""")
 
 
