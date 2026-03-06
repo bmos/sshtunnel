@@ -49,11 +49,8 @@ def get_random_string(length=12):
     return ''.join([random.choice(asciis) for _ in range(length)])
 
 
-HERE = path.abspath(path.dirname(__file__))
-
-
 def get_test_data_path(x):
-    return path.join(HERE, x)
+    return path.join(path.abspath(path.dirname(__file__)), x)
 
 
 @contextmanager
