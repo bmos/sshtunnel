@@ -213,8 +213,10 @@ class SSHClientTest(unittest.TestCase):
         cls.log.addHandler(cls._sshtunnel_log_handler)
         cls.sshtunnel_log_messages = cls._sshtunnel_log_handler.messages
         # set verbose format for logging
-        _fmt = '%(asctime)s| %(levelname)-4.3s|%(threadName)10.9s/' \
-               '%(lineno)04d@%(module)-10.9s| %(message)s'
+        _fmt = (
+            '%(asctime)s| %(levelname)-4.3s|%(threadName)10.9s/'
+            '%(lineno)04d@%(module)-10.9s| %(message)s'
+        )
         for handler in cls.log.handlers:
             handler.setFormatter(logging.Formatter(_fmt))
 

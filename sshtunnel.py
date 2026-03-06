@@ -176,8 +176,10 @@ def _add_handler(logger, handler=None, loglevel=None):
     """
     handler.setLevel(loglevel or DEFAULT_LOGLEVEL)
     if handler.level <= logging.DEBUG:
-        _fmt = '%(asctime)s| %(levelname)-4.3s|%(threadName)10.9s/' \
-               '%(lineno)04d@%(module)-10.9s| %(message)s'
+        _fmt = (
+            '%(asctime)s| %(levelname)-4.3s|%(threadName)10.9s/'
+            '%(lineno)04d@%(module)-10.9s| %(message)s'
+        )
         handler.setFormatter(logging.Formatter(_fmt))
     else:
         handler.setFormatter(logging.Formatter(
