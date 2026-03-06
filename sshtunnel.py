@@ -116,16 +116,23 @@ def check_address(address):
         check_port(address[1])
     elif isinstance(address, string_types):
         if os.name != 'posix':
-            raise ValueError('Platform does not support UNIX domain sockets')
+            msg = 'Platform does not support UNIX domain sockets'
+            raise ValueError(msg)
         if not (
             os.path.exists(address)
             or os.access(os.path.dirname(address), os.W_OK)
         ):
-            raise ValueError('ADDRESS not a valid socket domain socket ({0})'
-                             .format(address))
+            msg = (
+                'ADDRESS not a valid socket domain socket ({0})'
+                             .format(address)
+            )
+            raise ValueError(msg)
     else:
-        raise TypeError('ADDRESS is not a tuple, string, or character buffer '
-                         '({0})'.format(type(address).__name__))
+        msg = (
+            'ADDRESS is not a tuple, string, or character buffer '
+                         '({0})'.format(type(address).__name__)
+        )
+        raise TypeError(msg)
 
 
 def check_addresses(address_list, is_remote=False):
@@ -156,8 +163,11 @@ def check_addresses(address_list, is_remote=False):
     """
     assert all(isinstance(x, (tuple, string_types)) for x in address_list)
     if (is_remote and any(isinstance(x, string_types) for x in address_list)):
-        raise AssertionError('UNIX domain sockets not allowed for remote'
-                             'addresses')
+        msg = (
+            'UNIX domain sockets not allowed for remote'
+                             'addresses'
+        )
+        raise AssertionError(msg)
 
     for address in address_list:
         check_address(address)
@@ -825,8 +835,11 @@ class SSHTunnelForwarder(object):
         """
         count = len(remote_binds) - len(local_binds)
         if count < 0:
-            raise ValueError('Too many local bind addresses '
-                             '(local_bind_addresses > remote_bind_addresses)')
+            msg = (
+                'Too many local bind addresses '
+                             '(local_bind_addresses > remote_bind_addresses)'
+            )
+            raise ValueError(msg)
         local_binds.extend([('0.0.0.0', 0) for x in range(count)])
         return local_binds
 
@@ -866,7 +879,8 @@ class SSHTunnelForwarder(object):
             ssh_loaded_pkeys.insert(0, ssh_pkey)
 
         if not ssh_password and not ssh_loaded_pkeys:
-            raise ValueError('No password or public key available!')
+            msg = 'No password or public key available!'
+            raise ValueError(msg)
         return (ssh_password, ssh_loaded_pkeys)
 
     @staticmethod
@@ -875,15 +889,21 @@ class SSHTunnelForwarder(object):
 
         if not bind_address and not bind_addresses:
             if is_remote:
-                raise ValueError("No {0} bind addresses specified. Use "
+                msg = (
+                    "No {0} bind addresses specified. Use "
                                  "'{0}_bind_address' or '{0}_bind_addresses'"
-                                 " argument".format(addr_kind))
+                                 " argument".format(addr_kind)
+                )
+                raise ValueError(msg)
             else:
                 return []
         elif bind_address and bind_addresses:
-            raise ValueError("You can't use both '{0}_bind_address' and "
+            msg = (
+                "You can't use both '{0}_bind_address' and "
                              "'{0}_bind_addresses' arguments. Use one of "
-                             "them.".format(addr_kind))
+                             "them.".format(addr_kind)
+            )
+            raise ValueError(msg)
         if bind_address:
             bind_addresses = [bind_address]
         if not is_remote:
@@ -900,18 +920,24 @@ class SSHTunnelForwarder(object):
         Processes optional deprecate arguments
         """
         if deprecated_attrib not in _DEPRECATIONS:
-            raise ValueError('{0} not included in deprecations list'
-                             .format(deprecated_attrib))
+            msg = (
+                '{0} not included in deprecations list'
+                             .format(deprecated_attrib)
+            )
+            raise ValueError(msg)
         if deprecated_attrib in kwargs:
             warnings.warn("'{0}' is DEPRECATED use '{1}' instead"
                           .format(deprecated_attrib,
                                   _DEPRECATIONS[deprecated_attrib]),
                           DeprecationWarning)
             if attrib:
-                raise ValueError("You can't use both '{0}' and '{1}'. "
+                msg = (
+                    "You can't use both '{0}' and '{1}'. "
                                  "Please only use one of them"
                                  .format(deprecated_attrib,
-                                         _DEPRECATIONS[deprecated_attrib]))
+                                         _DEPRECATIONS[deprecated_attrib])
+                )
+                raise ValueError(msg)
             else:
                 return kwargs.pop(deprecated_attrib)
         return attrib
@@ -972,7 +998,8 @@ class SSHTunnelForwarder(object):
             ssh_port = kwargs.pop('ssh_port', None)
 
         if kwargs:
-            raise ValueError('Unknown arguments: {0}'.format(kwargs))
+            msg = 'Unknown arguments: {0}'.format(kwargs)
+            raise ValueError(msg)
 
         # remote binds
         self._remote_binds = self._get_binds(remote_bind_address,
@@ -1505,8 +1532,9 @@ class SSHTunnelForwarder(object):
         # BACKWARDS COMPATIBILITY
         self._check_is_started()
         if len(self._server_list) != 1:
+            msg = 'Use .local_bind_ports property for more than one tunnel'
             raise BaseSSHTunnelForwarderError(
-                'Use .local_bind_ports property for more than one tunnel'
+                msg
             )
         return self.local_bind_ports[0]
 
@@ -1515,8 +1543,9 @@ class SSHTunnelForwarder(object):
         # BACKWARDS COMPATIBILITY
         self._check_is_started()
         if len(self._server_list) != 1:
+            msg = 'Use .local_bind_hosts property for more than one tunnel'
             raise BaseSSHTunnelForwarderError(
-                'Use .local_bind_hosts property for more than one tunnel'
+                msg
             )
         return self.local_bind_hosts[0]
 
@@ -1525,8 +1554,9 @@ class SSHTunnelForwarder(object):
         # BACKWARDS COMPATIBILITY
         self._check_is_started()
         if len(self._server_list) != 1:
+            msg = 'Use .local_bind_addresses property for more than one tunnel'
             raise BaseSSHTunnelForwarderError(
-                'Use .local_bind_addresses property for more than one tunnel'
+                msg
             )
         return self.local_bind_addresses[0]
 
@@ -1724,11 +1754,13 @@ def _bindlist(input_str):
             _port = '22'  # default port if not given
         return _ip, int(_port)
     except ValueError:
+        msg = 'Address tuple must be of type IP_ADDRESS:PORT'
         raise argparse.ArgumentTypeError(
-            'Address tuple must be of type IP_ADDRESS:PORT'
+            msg
         )
     except AssertionError:
-        raise argparse.ArgumentTypeError("Both IP:PORT can't be missing!")
+        msg = "Both IP:PORT can't be missing!"
+        raise argparse.ArgumentTypeError(msg)
 
 
 def _parse_arguments(args=None):
