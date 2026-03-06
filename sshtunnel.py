@@ -910,9 +910,8 @@ class SSHTunnelForwarder(object):
                     " argument".format(addr_kind)
                 )
                 raise ValueError(msg)
-            else:
-                return []
-        elif bind_address and bind_addresses:
+            return []
+        if bind_address and bind_addresses:
             msg = (
                 "You can't use both '{0}_bind_address' and "
                 "'{0}_bind_addresses' arguments. Use one of "
@@ -955,8 +954,7 @@ class SSHTunnelForwarder(object):
                     )
                 )
                 raise ValueError(msg)
-            else:
-                return kwargs.pop(deprecated_attrib)
+            return kwargs.pop(deprecated_attrib)
         return attrib
 
     def __init__(
@@ -1173,8 +1171,7 @@ class SSHTunnelForwarder(object):
     def _raise(self, exception=BaseSSHTunnelForwarderError, reason=None):
         if self._raise_fwd_exc:
             raise exception(reason)
-        else:
-            self.logger.error(repr(exception(reason)))
+        self.logger.error(repr(exception(reason)))
 
     def _make_ssh_forward_server(self, remote_address, local_bind_address):
         """
@@ -1800,7 +1797,7 @@ def _bindlist(input_str):
             (_ip, _port) = ip_port
         if not _ip and not _port:
             raise AssertionError
-        elif not _port:
+        if not _port:
             _port = '22'  # default port if not given
         return _ip, int(_port)
     except ValueError:

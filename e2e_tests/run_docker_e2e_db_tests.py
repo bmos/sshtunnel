@@ -58,7 +58,7 @@ def run_postgres_query(port, query=PG_QUERY):
             state = conn.poll()
             if state == psycopg2.extensions.POLL_OK:
                 break
-            elif state == psycopg2.extensions.POLL_WRITE:
+            if state == psycopg2.extensions.POLL_WRITE:
                 select.select([], [conn.fileno()], [])
             elif state == psycopg2.extensions.POLL_READ:
                 select.select([conn.fileno()], [], [])
@@ -71,7 +71,7 @@ def run_postgres_query(port, query=PG_QUERY):
             state = conn.poll()
             if state == psycopg2.extensions.POLL_OK:
                 return ASYNC_OK
-            elif state == psycopg2.extensions.POLL_WRITE:
+            if state == psycopg2.extensions.POLL_WRITE:
                 # Wait for the given time and then check the return status
                 # If three empty lists are returned then the time-out is
                 # reached.
