@@ -401,7 +401,7 @@ class SSHClientTest(unittest.TestCase):
                             s.close()
                             socks.remove(s)
             self.log.info('<<< echo-server received STOP signal')
-        except Exception as e:
+        except AttributeError as e:
             self.log.info('echo-server got Exception: {0}'.format(repr(e)))
         finally:
             self.is_server_working = False

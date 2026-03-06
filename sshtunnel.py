@@ -360,9 +360,9 @@ class _ForwardHandler(socketserver.BaseRequestHandler):
                 src_addr=src_address,
                 timeout=TUNNEL_TIMEOUT
             )
-        except Exception as e:  # pragma: no cover
-            msg_tupe = 'ssh ' if isinstance(e, paramiko.SSHException) else ''
-            exc_msg = 'open new channel {0}error: {1}'.format(msg_tupe, e)
+        except (paramiko.SSHException, EnvironmentError) as e:  # pragma: no cover
+            type_msg = 'ssh ' if isinstance(e, paramiko.SSHException) else ''
+            exc_msg = 'open new channel {0}error: {1}'.format(type_msg, e)
             log_msg = '{0} {1}'.format(self.info, exc_msg)
             self.logger.log(TRACE_LEVEL, log_msg)
             raise HandlerSSHTunnelForwarderError(exc_msg)
@@ -1302,7 +1302,7 @@ class SSHTunnelForwarder(object):
             if isinstance(_srv, _StreamForwardServer):
                 try:
                     os.unlink(_srv.local_address)
-                except Exception as e:
+                except OSError as e:
                     self.logger.error('Unable to unlink socket {0}: {1}'
                                       .format(_srv.local_address, repr(e)))
         self.is_alive = False
