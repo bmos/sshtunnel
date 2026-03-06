@@ -11,18 +11,18 @@ The connection(s) are closed when explicitly calling the
 
 """
 
-import os
-import random
-import string
-import sys
-import socket
+import argparse
 import getpass
 import logging
-import argparse
-import warnings
+import os
+import random
+import socket
+import string
+import sys
 import threading
-from select import select
+import warnings
 from binascii import hexlify
+from select import select
 
 import paramiko
 

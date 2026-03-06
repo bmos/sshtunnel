@@ -1,24 +1,25 @@
 from __future__ import with_statement
 
-import os
-import sys
-import random
-import select
-import socket
+import argparse
 import getpass
 import logging
-import argparse
-import warnings
+import os
+import random
+import select
+import shutil
+import socket
+import sys
+import tempfile
 import threading
-from os import path, linesep
-from functools import partial
+import warnings
 from contextlib import contextmanager
+from functools import partial
+from os import linesep, path
 
 import mock
 import paramiko
+
 import sshtunnel
-import shutil
-import tempfile
 
 if sys.version_info[0] == 2:
     from cStringIO import StringIO
