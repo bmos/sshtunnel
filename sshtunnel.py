@@ -249,7 +249,7 @@ def create_logger(logger=None,
         _check_paramiko_handlers(logger=logger)
 
     if capture_warnings and sys.version_info >= (2, 7):
-        logging.captureWarnings(True)
+        logging.captureWarnings(capture=True)
         pywarnings = logging.getLogger('py.warnings')
         pywarnings.handlers.extend(logger.handlers)
     return logger
@@ -406,9 +406,9 @@ class _ForwardServer(socketserver.TCPServer):  # Not Threading
                           'to remote {1} side of the tunnel: {2}'
                           .format(local_side, remote_side, exc))
         try:
-            self.tunnel_ok.put(False, block=False, timeout=0.1)
+            self.tunnel_ok.put(item=False, block=False, timeout=0.1)
         except queue.Full:
-            # wait untill tunnel_ok.get is called
+            # wait until tunnel_ok.get is called
             pass
         except exc:
             self.logger.error('unexpected internal error: {0}'.format(exc))

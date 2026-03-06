@@ -1141,13 +1141,13 @@ class SSHClientTest(unittest.TestCase):
         """
         Test `make_ssh_forward_server` respects `daemon_forward_servers=True`
         """
-        self.check_make_ssh_forward_server_sets_daemon(True)
+        self.check_make_ssh_forward_server_sets_daemon(case=True)
 
     def test_make_ssh_forward_server_sets_daemon_false(self):
         """
         Test `make_ssh_forward_server` respects `daemon_forward_servers=False`
         """
-        self.check_make_ssh_forward_server_sets_daemon(False)
+        self.check_make_ssh_forward_server_sets_daemon(case=False)
 
     def test_get_keys(self):
         """ Test loading keys from the paramiko Agent """
