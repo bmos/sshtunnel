@@ -49,6 +49,9 @@ def get_random_string(length=12):
     return ''.join([random.choice(asciis) for _ in range(length)])
 
 
+HERE = path.abspath(path.dirname(__file__))
+
+
 def get_test_data_path(x):
     return path.join(HERE, x)
 
@@ -90,7 +93,6 @@ FINGERPRINTS = {
     'ecdsa-sha2-nistp256': ECDSA,
 }
 DAEMON_THREADS = False
-HERE = path.abspath(path.dirname(__file__))
 THREADS_TIMEOUT = 5.0
 PKEY_FILE = 'testrsa.key'
 ENCRYPTED_PKEY_FILE = 'testrsa_encrypted.key'
@@ -264,6 +266,74 @@ class SSHClientTest(unittest.TestCase):
                                    thread.name))
             thread.join(timeout)
 
+    def _do_forwarding(self, timeout=sshtunnel.SSH_TIMEOUT):
+        self.log.debug('forward-server Start')
+        self.ssh_event.wait(THREADS_TIMEOUT)  # wait for SSH server's transport
+        try:
+            schan = self.ts.accept(timeout=timeout)
+            info = "forward-server schan <> echo"
+            self.log.info(info + " accept()")
+            echo = socket.create_connection(
+                (self.eaddr, self.eport)
+            )
+            while self.is_server_working:
+                rqst, _, _ = select.select([schan, echo],
+                                           [],
+                                           [],
+                                           timeout)
+                if schan in rqst:
+                    data = schan.recv(1024)
+                    self.log.debug('{0} -->: {1}'.format(info, repr(data)))
+                    echo.send(data)
+                    if len(data) == 0:
+                        break
+                if echo in rqst:
+                    data = echo.recv(1024)
+                    self.log.debug('{0} <--: {1}'.format(info, repr(data)))
+                    schan.send(data)
+                    if len(data) == 0:
+                        break
+            self.log.info('<<< forward-server received STOP signal')
+        except socket.error:
+            self.log.critical('{0} sending RST'.format(info))
+        # except Exception as e:
+        #     # we reach this point usually when schan is None (paramiko bug?)
+        #     self.log.critical(repr(e))
+        finally:
+            if schan:
+                self.log.debug('{0} closing connection...'.format(info))
+                schan.close()
+                echo.close()
+                self.log.debug('{0} connection closed.'.format(info))
+
+    def _run_ssh_server(self):
+        self.log.info('ssh-server Start')
+        try:
+            self.socks, addr = self.ssockl.accept()
+        except socket.timeout:
+            self.log.error('ssh-server connection timed out!')
+            self.running_threads.remove('ssh-server')
+            return
+        self.ts = paramiko.Transport(self.socks)
+        host_key = paramiko.RSAKey.from_private_key_file(
+            get_test_data_path(PKEY_FILE)
+        )
+        self.ts.add_server_key(host_key)
+        server = NullServer(allowed_keys=FINGERPRINTS.keys(),
+                            log=self.log)
+        t = threading.Thread(target=self._do_forwarding,
+                             name='forward-server')
+        t.daemon = DAEMON_THREADS
+        self.running_threads.append(t.name)
+        self.threads[t.name] = t
+        t.start()
+        self.ts.start_server(self.ssh_event, server)
+        self.wait_for_thread(t,
+                             timeout=None,
+                             who='ssh-server')
+        self.log.info('ssh-server shutting down')
+        self.running_threads.remove('ssh-server')
+
     def start_echo_and_ssh_server(self):
         self.is_server_working = True
         self.start_echo_server()
@@ -295,42 +365,6 @@ class SSHClientTest(unittest.TestCase):
         self._check_server_auth()
         yield server
         server._stop_transport()
-
-    def start_echo_server(self):
-        t = threading.Thread(target=self._run_echo_server,
-                             name='echo-server')
-        t.daemon = DAEMON_THREADS
-        self.running_threads.append(t.name)
-        self.threads[t.name] = t
-        t.start()
-
-    def _run_ssh_server(self):
-        self.log.info('ssh-server Start')
-        try:
-            self.socks, addr = self.ssockl.accept()
-        except socket.timeout:
-            self.log.error('ssh-server connection timed out!')
-            self.running_threads.remove('ssh-server')
-            return
-        self.ts = paramiko.Transport(self.socks)
-        host_key = paramiko.RSAKey.from_private_key_file(
-            get_test_data_path(PKEY_FILE)
-        )
-        self.ts.add_server_key(host_key)
-        server = NullServer(allowed_keys=FINGERPRINTS.keys(),
-                            log=self.log)
-        t = threading.Thread(target=self._do_forwarding,
-                             name='forward-server')
-        t.daemon = DAEMON_THREADS
-        self.running_threads.append(t.name)
-        self.threads[t.name] = t
-        t.start()
-        self.ts.start_server(self.ssh_event, server)
-        self.wait_for_thread(t,
-                             timeout=None,
-                             who='ssh-server')
-        self.log.info('ssh-server shutting down')
-        self.running_threads.remove('ssh-server')
 
     def _run_echo_server(self, timeout=sshtunnel.SSH_TIMEOUT):
         self.log.info('echo-server Started')
@@ -380,45 +414,13 @@ class SSHClientTest(unittest.TestCase):
             self.log.info('echo-server shutting down')
             self.running_threads.remove('echo-server')
 
-    def _do_forwarding(self, timeout=sshtunnel.SSH_TIMEOUT):
-        self.log.debug('forward-server Start')
-        self.ssh_event.wait(THREADS_TIMEOUT)  # wait for SSH server's transport
-        try:
-            schan = self.ts.accept(timeout=timeout)
-            info = "forward-server schan <> echo"
-            self.log.info(info + " accept()")
-            echo = socket.create_connection(
-                (self.eaddr, self.eport)
-            )
-            while self.is_server_working:
-                rqst, _, _ = select.select([schan, echo],
-                                           [],
-                                           [],
-                                           timeout)
-                if schan in rqst:
-                    data = schan.recv(1024)
-                    self.log.debug('{0} -->: {1}'.format(info, repr(data)))
-                    echo.send(data)
-                    if len(data) == 0:
-                        break
-                if echo in rqst:
-                    data = echo.recv(1024)
-                    self.log.debug('{0} <--: {1}'.format(info, repr(data)))
-                    schan.send(data)
-                    if len(data) == 0:
-                        break
-            self.log.info('<<< forward-server received STOP signal')
-        except socket.error:
-            self.log.critical('{0} sending RST'.format(info))
-        # except Exception as e:
-        #     # we reach this point usually when schan is None (paramiko bug?)
-        #     self.log.critical(repr(e))
-        finally:
-            if schan:
-                self.log.debug('{0} closing connection...'.format(info))
-                schan.close()
-                echo.close()
-                self.log.debug('{0} connection closed.'.format(info))
+    def start_echo_server(self):
+        t = threading.Thread(target=self._run_echo_server,
+                             name='echo-server')
+        t.daemon = DAEMON_THREADS
+        self.running_threads.append(t.name)
+        self.threads[t.name] = t
+        t.start()
 
     def randomize_eport(self):
         return random.randint(49152, 65535)
@@ -1194,6 +1196,25 @@ class SSHClientTest(unittest.TestCase):
 class AuxiliaryTest(unittest.TestCase):
     """ Set of tests that do not need the mock SSH server or logger """
 
+    def _test_parser(self, parser):
+        self.assertEqual(parser['ssh_address'], '10.10.10.10')
+        self.assertEqual(parser['ssh_username'], getpass.getuser())
+        self.assertEqual(parser['ssh_port'], 22)
+        self.assertEqual(parser['ssh_password'], SSH_PASSWORD)
+        self.assertListEqual(parser['remote_bind_addresses'],
+                             [('10.0.0.1', 8080), ('10.0.0.2', 8080)])
+        self.assertListEqual(parser['local_bind_addresses'],
+                             [('', 8081), ('', 8082)])
+        self.assertEqual(parser['ssh_host_key'], str(SSH_DSS))
+        self.assertEqual(parser['ssh_private_key'], __file__)
+        self.assertEqual(parser['ssh_private_key_password'], SSH_PASSWORD)
+        self.assertTrue(parser['threaded'])
+        self.assertEqual(parser['verbose'], 3)
+        self.assertEqual(parser['ssh_proxy'], ('10.0.0.2', 22))
+        self.assertEqual(parser['ssh_config_file'], 'ssh_config')
+        self.assertTrue(parser['compression'])
+        self.assertFalse(parser['allow_agent'])
+
     def test_parse_arguments_short(self):
         """ Test CLI argument parsing with short parameter names """
         args = ['10.10.10.10',  # ssh_address
@@ -1244,25 +1265,6 @@ class AuxiliaryTest(unittest.TestCase):
              ]
         )
         self._test_parser(parser)
-
-    def _test_parser(self, parser):
-        self.assertEqual(parser['ssh_address'], '10.10.10.10')
-        self.assertEqual(parser['ssh_username'], getpass.getuser())
-        self.assertEqual(parser['ssh_port'], 22)
-        self.assertEqual(parser['ssh_password'], SSH_PASSWORD)
-        self.assertListEqual(parser['remote_bind_addresses'],
-                             [('10.0.0.1', 8080), ('10.0.0.2', 8080)])
-        self.assertListEqual(parser['local_bind_addresses'],
-                             [('', 8081), ('', 8082)])
-        self.assertEqual(parser['ssh_host_key'], str(SSH_DSS))
-        self.assertEqual(parser['ssh_private_key'], __file__)
-        self.assertEqual(parser['ssh_private_key_password'], SSH_PASSWORD)
-        self.assertTrue(parser['threaded'])
-        self.assertEqual(parser['verbose'], 3)
-        self.assertEqual(parser['ssh_proxy'], ('10.0.0.2', 22))
-        self.assertEqual(parser['ssh_config_file'], 'ssh_config')
-        self.assertTrue(parser['compression'])
-        self.assertFalse(parser['allow_agent'])
 
     def test_bindlist(self):
         """
