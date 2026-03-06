@@ -36,12 +36,19 @@ else:
 
 def get_random_string(length=12):
     """
-    >>> r = get_random_string(1)
-    >>> r in asciis
-    True
-    >>> r = get_random_string(2)
-    >>> [r[0] in asciis, r[1] in asciis]
-    [True, True]
+
+    .. code-block:: python
+       :caption: output is True
+
+        r = get_random_string(1)
+        r in asciis
+
+    .. code-block:: python
+       :caption: output is [True, True]
+
+        r = get_random_string(2)
+        [r[0] in asciis, r[1] in asciis]
+
     """
     ascii_lowercase = 'abcdefghijklmnopqrstuvwxyz'
     ascii_uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'

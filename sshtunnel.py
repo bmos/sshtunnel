@@ -96,20 +96,26 @@ def check_address(address):
     """
     Check if the format of the address is correct
 
+    .. code-block:: python
+
+        check_address(('127.0.0.1', 22))
+
     Arguments:
-        address (tuple):
-            (``str``, ``int``) representing an IP address and port,
+        address (tuple, str):
+            (``str``, ``int``) or ``str`` representing an IP address and port,
             respectively
 
             .. note::
-                alternatively a local ``address`` can be a ``str`` when working
-                with UNIX domain sockets, if supported by the platform
+                a local ``address`` can be a ``str`` only when working
+                with UNIX domain sockets (not supported on all platforms)
+
     Raises:
         ValueError:
-            raised when address has an incorrect format
+            When ``address`` has an incorrect format
 
-    Example:
-        >>> check_address(('127.0.0.1', 22))
+        TypeError:
+            When ``address`` is not a tuple, string, or character buffer
+
     """
     if isinstance(address, tuple):
         check_host(address[0])
@@ -139,6 +145,10 @@ def check_addresses(address_list, is_remote=False):
     """
     Check if the format of the addresses is correct
 
+    .. code-block:: python
+
+        check_addresses([('127.0.0.1', 22), ('127.0.0.1', 2222)])
+
     Arguments:
         address_list (list[tuple]):
             Sequence of (``str``, ``int``) pairs, each representing an IP
@@ -149,17 +159,13 @@ def check_addresses(address_list, is_remote=False):
                 the list can be of type ``str``, representing a valid UNIX
                 domain socket
 
-        is_remote (boolean):
+        is_remote (bool):
             Whether or not the address list
+
     Raises:
         AssertionError:
-            raised when ``address_list`` contains an invalid element
-        ValueError:
-            raised when any address in the list has an incorrect format
+            When ``address_list`` contains an invalid element
 
-    Example:
-
-        >>> check_addresses([('127.0.0.1', 22), ('127.0.0.1', 2222)])
     """
     assert all(isinstance(x, (tuple, string_types)) for x in address_list)
     if (is_remote and any(isinstance(x, string_types) for x in address_list)):
@@ -213,32 +219,33 @@ def create_logger(logger=None,
     Attach or create a new logger and add a console handler if not present
 
     Arguments:
-
         logger (Optional[logging.Logger]):
-            :class:`logging.Logger` instance; a new one is created if this
-            argument is empty
+            :py:class:`logging.Logger` instance;
+            a new one is created if this argument is empty
 
         loglevel (Optional[str or int]):
-            :class:`logging.Logger`'s level, either as a string (i.e.
-            ``ERROR``) or in numeric format (10 == ``DEBUG``)
+            :py:class:`logging.Logger`'s level,
+            either as a string (i.e. ``ERROR``)
+            or in numeric format (10 == ``DEBUG``)
 
-            .. note:: a value of 1 == ``TRACE`` enables Tracing mode
+            .. note::
+                a value of 1 == ``TRACE`` enables Tracing mode
 
-        capture_warnings (boolean):
+        capture_warnings (bool):
             Enable/disable capturing the events logged by the warnings module
             into ``logger``'s handlers
 
             Default: True
 
-            .. note:: ignored in python 2.6
-
-        add_paramiko_handler (boolean):
+        add_paramiko_handler (bool):
             Whether or not add a console handler for ``paramiko.transport``'s
             logger if no handler present
 
             Default: True
+
     Return:
-        :class:`logging.Logger`
+        :py:class:`logging.Logger`
+
     """
     logger = logger or logging.getLogger(
         'sshtunnel.SSHTunnelForwarder'
@@ -288,7 +295,7 @@ def generate_random_string(length):
 
 
 class BaseSSHTunnelForwarderError(Exception):
-    """ Exception raised by :class:`SSHTunnelForwarder` errors """
+    """ Exception raised by :py:class:`SSHTunnelForwarder` errors """
 
     def __init__(self, *args, **kwargs):
         self.value = kwargs.pop('value', args[0] if args else '')
@@ -520,29 +527,28 @@ class SSHTunnelForwarder(object):
     """
     **SSH tunnel class**
 
-        - Initialize a SSH tunnel to a remote host according to the input
-          arguments
+    - Initialize a SSH tunnel to a remote host according to the input
+      arguments
 
-        - Optionally:
-            + Read an SSH configuration file (typically ``~/.ssh/config``)
-            + Load keys from a running SSH agent (i.e. Pageant, GNOME Keyring)
+    - Optionally:
+
+        + Read an SSH configuration file (typically ``~/.ssh/config``)
+        + Load keys from a running SSH agent (i.e. Pageant, GNOME Keyring)
 
     Raises:
-
-        :class:`.BaseSSHTunnelForwarderError`:
+        :py:class:`.BaseSSHTunnelForwarderError`:
             raised by SSHTunnelForwarder class methods
 
-        :class:`.HandlerSSHTunnelForwarderError`:
+        :py:class:`.HandlerSSHTunnelForwarderError`:
             raised by tunnel forwarder threads
 
             .. note::
-                    Attributes ``mute_exceptions`` and
-                    ``raise_exception_if_any_forwarder_have_a_problem``
-                    (deprecated) may be used to silence most exceptions raised
-                    from this class
+                Attributes ``mute_exceptions`` and
+                ``raise_exception_if_any_forwarder_have_a_problem``
+                (deprecated) may be used to silence most exceptions raised
+                from this class
 
     Keyword Arguments:
-
         ssh_address_or_host (tuple or str):
             IP or hostname of ``REMOTE GATEWAY``. It may be a two-element
             tuple (``str``, ``int``) representing IP and port respectively,
@@ -589,7 +595,7 @@ class SSHTunnelForwarder(object):
 
         ssh_pkey (str or paramiko.PKey):
             **Private** key file name (``str``) to obtain the public key
-            from or a **public** key (:class:`paramiko.pkey.PKey`)
+            from or a **public** key (:py:class:`paramiko.pkey.PKey`)
 
         ssh_private_key_password (str):
             Password for an encrypted ``ssh_pkey``
@@ -600,9 +606,9 @@ class SSHTunnelForwarder(object):
 
         ssh_proxy (socket-like object or tuple):
             Proxy where all SSH traffic will be passed through.
-            It might be for example a :class:`paramiko.proxy.ProxyCommand`
+            It might be for example a :py:class:`paramiko.proxy.ProxyCommand`
             instance.
-            See either the :class:`paramiko.transport.Transport`'s sock
+            See either the :py:class:`paramiko.transport.Transport`'s sock
             parameter documentation or ``ProxyCommand`` in ``ssh_config(5)``
             for more information.
 
@@ -614,11 +620,11 @@ class SSHTunnelForwarder(object):
 
             .. versionadded:: 0.0.5
 
-        ssh_proxy_enabled (boolean):
+        ssh_proxy_enabled (bool):
             Enable/disable SSH proxy. If True and user's
             ``ssh_config_file`` contains a ``ProxyCommand`` directive
             that matches the specified ``ssh_address_or_host``,
-            a :class:`paramiko.proxy.ProxyCommand` object will be created where
+            a :py:class:`paramiko.proxy.ProxyCommand` object will be created where
             all SSH traffic will be passed through
 
             Default: ``True``
@@ -659,7 +665,7 @@ class SSHTunnelForwarder(object):
 
             .. versionadded:: 0.0.4
 
-        allow_agent (boolean):
+        allow_agent (bool):
             Enable/disable load of keys from an SSH agent
 
             Default: ``True``
@@ -673,7 +679,7 @@ class SSHTunnelForwarder(object):
 
             .. versionadded:: 0.1.4
 
-        compression (boolean):
+        compression (bool):
             Turn on/off transport compression. By default compression is
             disabled since it may negatively affect interactive sessions
 
@@ -684,15 +690,15 @@ class SSHTunnelForwarder(object):
         logger (logging.Logger):
             logging instance for sshtunnel and paramiko
 
-            Default: :class:`logging.Logger` instance with a single
-            :class:`logging.StreamHandler` handler and
-            :const:`DEFAULT_LOGLEVEL` level
+            Default: :py:class:`logging.Logger` instance with a single
+            :py:class:`logging.StreamHandler` handler and
+            py:const: `DEFAULT_LOGLEVEL` level
 
             .. versionadded:: 0.0.3
 
-        mute_exceptions (boolean):
-            Allow silencing :class:`BaseSSHTunnelForwarderError` or
-            :class:`HandlerSSHTunnelForwarderError` exceptions when enabled
+        mute_exceptions (bool):
+            Allow silencing :py:class:`BaseSSHTunnelForwarderError` or
+            :py:class:`HandlerSSHTunnelForwarderError` exceptions when enabled
 
             Default: ``False``
 
@@ -709,7 +715,7 @@ class SSHTunnelForwarder(object):
 
             .. versionadded:: 0.0.7
 
-        threaded (boolean):
+        threaded (bool):
             Allow concurrent connections over a single tunnel
 
             Default: ``True``
@@ -731,13 +737,13 @@ class SSHTunnelForwarder(object):
         ssh_private_key (str or paramiko.PKey):
             Superseded by ``ssh_pkey``, which can represent either a
             **private** key file name (``str``) or a **public** key
-            (:class:`paramiko.pkey.PKey`)
+            (:py:class:`paramiko.pkey.PKey`)
 
             .. deprecated:: 0.0.8
 
-        raise_exception_if_any_forwarder_have_a_problem (boolean):
-            Allow silencing :class:`BaseSSHTunnelForwarderError` or
-            :class:`HandlerSSHTunnelForwarderError` exceptions when set to
+        raise_exception_if_any_forwarder_have_a_problem (bool):
+            Allow silencing :py:class:`BaseSSHTunnelForwarderError` or
+            :py:class:`HandlerSSHTunnelForwarderError` exceptions when set to
             False
 
             Default: ``True``
@@ -760,14 +766,15 @@ class SSHTunnelForwarder(object):
                 When :attr:`.skip_tunnel_checkup` is disabled or the local bind
                 is a UNIX socket, the value will always be ``True``
 
-            **Example**::
+            .. code-block:: python
+               :caption: where 55550 and 55551 are the local bind ports
 
-                {('127.0.0.1', 55550): True,   # this tunnel is up
-                 ('127.0.0.1', 55551): False}  # this one isn't
+                {
+                    ('127.0.0.1', 55550): True,  # this tunnel is up
+                    ('127.0.0.1', 55551): False  # this one isn't
+                }
 
-            where 55550 and 55551 are the local bind ports
-
-        skip_tunnel_checkup (boolean):
+        skip_tunnel_checkup (bool):
             Disable tunnel checkup (default for backwards compatibility).
 
             .. versionadded:: 0.1.0
@@ -845,6 +852,11 @@ class SSHTunnelForwarder(object):
         """
         Fill local_binds with defaults when no value/s were specified,
         leaving paramiko to decide in which local port the tunnel will be open
+
+        Raises:
+            ValueError:
+                When there are more local bind addresses than remote addresses
+
         """
         count = len(remote_binds) - len(local_binds)
         if count < 0:
@@ -865,10 +877,16 @@ class SSHTunnelForwarder(object):
                           logger=None):
         """
         Get sure authentication information is in place.
+
         ``ssh_pkey`` may be of classes:
-            - ``str`` - in this case it represents a private key file; public
-            key will be obtained from it
-            - ``paramiko.Pkey`` - it will be transparently added to loaded keys
+
+        - If ``str``, it represents a private key file;
+          public key will be obtained from it
+        - If ``paramiko.Pkey``, it will be transparently added to loaded keys
+
+        Raises:
+            ValueError:
+                When no password or public key are provided or available
 
         """
         ssh_loaded_pkeys = SSHTunnelForwarder.get_keys(
@@ -932,6 +950,12 @@ class SSHTunnelForwarder(object):
     def _process_deprecated(attrib, deprecated_attrib, kwargs):
         """
         Processes optional deprecate arguments
+
+        Raises:
+            ValueError:
+                When a pre-deprecation arg AND its
+                replacement are both provided
+
         """
         if deprecated_attrib not in _DEPRECATIONS:
             msg = (
@@ -1079,15 +1103,17 @@ class SSHTunnelForwarder(object):
         Check if a tunnel is up (remote target's host is reachable on TCP
         target's port)
 
+        .. deprecated:: 0.1.0
+            Replaced by :meth:`.check_tunnels()` and :attr:`.tunnel_is_up`
+
         Arguments:
             target (tuple):
                 tuple of type (``str``, ``int``) indicating the listen IP
                 address and port
-        Return:
+
+        Returns:
             boolean
 
-        .. deprecated:: 0.1.0
-            Replaced by :meth:`.check_tunnels()` and :attr:`.tunnel_is_up`
         """
         try:
             check_address(target)
@@ -1218,8 +1244,9 @@ class SSHTunnelForwarder(object):
         Arguments:
             logger (Optional[logging.Logger])
 
-        Return:
+        Returns:
             list
+
         """
         paramiko_agent = paramiko.Agent()
         agent_keys = paramiko_agent.get_keys()
@@ -1248,8 +1275,9 @@ class SSHTunnelForwarder(object):
 
                 Default: False
 
-        Return:
+        Returns:
             list
+
         """
         keys = SSHTunnelForwarder.get_agent_keys(logger=logger) \
             if allow_agent else []
@@ -1370,9 +1398,11 @@ class SSHTunnelForwarder(object):
     def _connect_to_gateway(self):
         """
         Open connection to SSH gateway
-         - First try with all keys loaded from an SSH agent (if allowed)
-         - Then with those passed directly or read from ~/.ssh/config
-         - As last resort, try with a provided password
+
+        - First try with all keys loaded from an SSH agent (if allowed)
+        - Then with those passed directly or read from ~/.ssh/config
+        - As last resort, try with a provided password
+
         """
         for key in self.ssh_pkeys:
             self.logger.debug(
@@ -1449,12 +1479,15 @@ class SSHTunnelForwarder(object):
         Arguments:
             pkey_file (str):
                 File containing a private key (RSA, DSS or ECDSA)
+
         Keyword Arguments:
             pkey_password (Optional[str]):
                 Password to decrypt the private key
             logger (Optional[logging.Logger])
+
         Return:
             paramiko.Pkey
+
         """
         ssh_pkey = None
         key_types = (paramiko.RSAKey, paramiko.DSSKey, paramiko.ECDSAKey)
@@ -1534,6 +1567,21 @@ class SSHTunnelForwarder(object):
         Shut the tunnel down. By default we are always waiting until closing
         all connections. You can use `force=True` to force close connections
 
+        .. note::
+            This **had** to be handled with care before ``0.1.0``
+
+            - if a port redirection is opened
+            - the destination is not reachable
+            - we attempt a connection to that tunnel (``SYN`` is sent and
+              acknowledged, then a ``FIN`` packet is sent and never
+              acknowledged... weird)
+            - we try to shutdown: it will not succeed until ``FIN_WAIT_2``
+              and ``CLOSE_WAIT`` time out.
+
+        .. note::
+            Handle these scenarios with :attr:`.tunnel_is_up`:
+            if False, server ``shutdown()`` will be skipped on that tunnel
+
         Keyword Arguments:
             force (bool):
                 Force close current connections
@@ -1542,19 +1590,6 @@ class SSHTunnelForwarder(object):
 
                 .. versionadded:: 0.2.2
 
-        .. note:: This **had** to be handled with care before ``0.1.0``:
-
-            - if a port redirection is opened
-            - the destination is not reachable
-            - we attempt a connection to that tunnel (``SYN`` is sent and
-              acknowledged, then a ``FIN`` packet is sent and never
-              acknowledged... weird)
-            - we try to shutdown: it will not succeed until ``FIN_WAIT_2`` and
-              ``CLOSE_WAIT`` time out.
-
-        .. note::
-            Handle these scenarios with :attr:`.tunnel_is_up`: if False, server
-            ``shutdown()`` will be skipped on that tunnel
         """
         self.logger.info('Closing all open connections...')
         opened_address_text = ', '.join(
@@ -1708,7 +1743,32 @@ class SSHTunnelForwarder(object):
 
 def open_tunnel(*args, **kwargs):
     """
-    Open an SSH Tunnel, wrapper for :class:`SSHTunnelForwarder`
+    Open an SSH Tunnel, wrapper for :py:class:`SSHTunnelForwarder`
+
+    .. note::
+        A value of ``debug_level`` set to 1 == ``TRACE`` enables tracing mode
+
+    .. note::
+        See :py:class:`SSHTunnelForwarder` for keyword arguments
+
+    .. code-block:: python
+
+        from sshtunnel import open_tunnel
+
+        with open_tunnel(
+            SERVER,
+            ssh_username=SSH_USER,
+            ssh_port=22,
+            ssh_password=SSH_PASSWORD,
+            remote_bind_address=(REMOTE_HOST, REMOTE_PORT),
+            local_bind_address=('', LOCAL_PORT)
+        ) as server:
+
+            def do_something(port):
+                pass
+
+            print("LOCAL PORTS:", server.local_bind_port)
+            do_something(server.local_bind_port)
 
     Arguments:
         destination (Optional[tuple]):
@@ -1717,9 +1777,10 @@ def open_tunnel(*args, **kwargs):
 
     Keyword Arguments:
         debug_level (Optional[int or str]):
-            log level for :class:`logging.Logger` instance, i.e. ``DEBUG``
+            log level for :py:class:`logging.Logger` instance,
+            i.e. ``DEBUG``
 
-        skip_tunnel_checkup (boolean):
+        skip_tunnel_checkup (bool):
             Enable/disable the local side check and populate
             :attr:`~SSHTunnelForwarder.tunnel_is_up`
 
@@ -1727,27 +1788,6 @@ def open_tunnel(*args, **kwargs):
 
             .. versionadded:: 0.1.0
 
-    .. note::
-        A value of ``debug_level`` set to 1 == ``TRACE`` enables tracing mode
-    .. note::
-        See :class:`SSHTunnelForwarder` for keyword arguments
-
-    **Example**::
-
-        from sshtunnel import open_tunnel
-
-        with open_tunnel(SERVER,
-                         ssh_username=SSH_USER,
-                         ssh_port=22,
-                         ssh_password=SSH_PASSWORD,
-                         remote_bind_address=(REMOTE_HOST, REMOTE_PORT),
-                         local_bind_address=('', LOCAL_PORT)) as server:
-            def do_something(port):
-                pass
-
-            print("LOCAL PORTS:", server.local_bind_port)
-
-            do_something(server.local_bind_port)
     """
     # Attach a console handler to the logger or create one if not passed
     loglevel = kwargs.pop('debug_level', None)
@@ -1783,8 +1823,20 @@ def open_tunnel(*args, **kwargs):
 
 
 def _bindlist(input_str):
-    """ Define type of data expected for remote and local bind address lists
-        Returns a tuple (ip_address, port) whose elements are (str, int)
+    """
+    Define type of data expected for remote and local bind address lists
+
+    Returns:
+        tuple
+            (ip_address, port) whose elements are (str, int)
+
+    Raises:
+        ArgumentTypeError:
+            When tuple is not IP_ADDRESS:PORT
+
+        AssertionError:
+            When IP_ADDRFESS and/or PORT are missing
+
     """
     try:
         ip_port = input_str.split(':')
