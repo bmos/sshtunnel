@@ -15,7 +15,6 @@ import argparse
 import getpass
 import logging
 import os
-import random
 import socket
 import string
 import sys
@@ -23,6 +22,11 @@ import threading
 import warnings
 from binascii import hexlify
 from select import select
+
+try:
+    import secrets as random
+except ImportError:
+    import random
 
 import paramiko
 
