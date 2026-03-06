@@ -93,6 +93,7 @@ def run_postgres_query(port, query=PG_QUERY):
                 raise psycopg2.OperationalError(
                     "poll() returned %s from _wait_timeout function" % state
                 )
+            return None
 
     pg_conn = psycopg2.connect(
         host='127.0.0.1',
