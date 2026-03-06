@@ -822,7 +822,7 @@ class SSHTunnelForwarder(object):
                                       proxycommand else None)
             if compression is None:
                 compression = hostname_info.get('compression', '')
-                compression = True if compression.upper() == 'YES' else False
+                compression = compression.upper() == 'YES'
         except IOError:
             if logger:
                 logger.warning(
