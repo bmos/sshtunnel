@@ -124,13 +124,13 @@ def check_address(address):
         ):
             msg = (
                 'ADDRESS not a valid socket domain socket ({0})'
-                             .format(address)
+                .format(address)
             )
             raise ValueError(msg)
     else:
         msg = (
-            'ADDRESS is not a tuple, string, or character buffer '
-                         '({0})'.format(type(address).__name__)
+            'ADDRESS is not a tuple, string, or character buffer ({0})'
+            .format(type(address).__name__)
         )
         raise TypeError(msg)
 
@@ -163,10 +163,7 @@ def check_addresses(address_list, is_remote=False):
     """
     assert all(isinstance(x, (tuple, string_types)) for x in address_list)
     if (is_remote and any(isinstance(x, string_types) for x in address_list)):
-        msg = (
-            'UNIX domain sockets not allowed for remote'
-                             'addresses'
-        )
+        msg = 'UNIX domain sockets not allowed for remote addresses'
         raise AssertionError(msg)
 
     for address in address_list:
@@ -837,7 +834,7 @@ class SSHTunnelForwarder(object):
         if count < 0:
             msg = (
                 'Too many local bind addresses '
-                             '(local_bind_addresses > remote_bind_addresses)'
+                '(local_bind_addresses > remote_bind_addresses)'
             )
             raise ValueError(msg)
         local_binds.extend([('0.0.0.0', 0) for x in range(count)])
@@ -891,8 +888,8 @@ class SSHTunnelForwarder(object):
             if is_remote:
                 msg = (
                     "No {0} bind addresses specified. Use "
-                                 "'{0}_bind_address' or '{0}_bind_addresses'"
-                                 " argument".format(addr_kind)
+                    "'{0}_bind_address' or '{0}_bind_addresses'"
+                    " argument".format(addr_kind)
                 )
                 raise ValueError(msg)
             else:
@@ -900,8 +897,8 @@ class SSHTunnelForwarder(object):
         elif bind_address and bind_addresses:
             msg = (
                 "You can't use both '{0}_bind_address' and "
-                             "'{0}_bind_addresses' arguments. Use one of "
-                             "them.".format(addr_kind)
+                "'{0}_bind_addresses' arguments. Use one of "
+                "them.".format(addr_kind)
             )
             raise ValueError(msg)
         if bind_address:
@@ -922,7 +919,7 @@ class SSHTunnelForwarder(object):
         if deprecated_attrib not in _DEPRECATIONS:
             msg = (
                 '{0} not included in deprecations list'
-                             .format(deprecated_attrib)
+                .format(deprecated_attrib)
             )
             raise ValueError(msg)
         if deprecated_attrib in kwargs:
@@ -933,9 +930,11 @@ class SSHTunnelForwarder(object):
             if attrib:
                 msg = (
                     "You can't use both '{0}' and '{1}'. "
-                                 "Please only use one of them"
-                                 .format(deprecated_attrib,
-                                         _DEPRECATIONS[deprecated_attrib])
+                    "Please only use one of them"
+                    .format(
+                        deprecated_attrib,
+                        _DEPRECATIONS[deprecated_attrib]
+                    )
                 )
                 raise ValueError(msg)
             else:

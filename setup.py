@@ -28,7 +28,9 @@ with open(path.join(here, 'changelog.rst'), encoding='utf-8') as f:
 
 with open(path.join(here, name + '.py'), encoding='utf-8') as f:
     data = f.read()
-    version = literal_eval(re.search("__version__[ ]*=[ ]*([^\r\n]+)", data).group(1))
+    version = literal_eval(
+        re.search("__version__[ ]*=[ ]*([^\r\n]+)", data).group(1)
+    )
 
 
 setup(
