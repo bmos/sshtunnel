@@ -1645,12 +1645,10 @@ class SSHTunnelForwarder(object):
     @property
     def is_active(self):
         """ Return True if the underlying SSH transport is up """
-        if (
+        return bool(
             '_transport' in self.__dict__
             and self._transport.is_active()
-        ):
-            return True
-        return False
+        )
 
     def __exit__(self, *args):
         self.stop(force=True)
