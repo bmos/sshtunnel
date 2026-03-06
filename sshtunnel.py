@@ -29,8 +29,9 @@ import paramiko
 if sys.version_info[0] < 3:  # pragma: no cover
     import Queue as queue
     import SocketServer as socketserver
-    string_types = basestring,  # noqa
-    input_ = raw_input  # noqa
+
+    string_types = basestring  # noqa: F821 undefined name
+    input_ = raw_input  # noqa: F821 undefined name
 else:  # pragma: no cover
     import queue
     import socketserver
@@ -1061,10 +1062,11 @@ class SSHTunnelForwarder(object):
         return list(agent_keys)
 
     @staticmethod
-    def get_keys(logger=None, host_pkey_directories=None, allow_agent=False):
+    def get_keys(  # noqa: C901 too complex
+        logger=None, host_pkey_directories=None, allow_agent=False
+    ):
         """
-        Load public keys from any available SSH agent or local
-        .ssh directory.
+        Load public keys from any available SSH agent or local .ssh directory.
 
         Arguments:
             logger (Optional[logging.Logger])
@@ -1874,8 +1876,7 @@ def _parse_arguments(args=None):
         nargs='*',
         dest='host_pkey_directories',
         metavar='FOLDER',
-        help='List of directories where SSH pkeys (in the format `id_*`) '
-             'may be found'
+        help='List of directories where SSH pkeys (in the format `id_*`) may be found',  # noqa: E501 line too long
     )
     return vars(parser.parse_args(args))
 
