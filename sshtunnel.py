@@ -1263,7 +1263,7 @@ class SSHTunnelForwarder(object):
         if hasattr(paramiko, 'Ed25519Key'):
             paramiko_key_types['ed25519'] = paramiko.Ed25519Key
         for directory in host_pkey_directories:
-            for keytype in paramiko_key_types.keys():
+            for keytype in paramiko_key_types:
                 ssh_pkey_expanded = os.path.expanduser(
                     os.path.join(directory, 'id_{}'.format(keytype))
                 )
