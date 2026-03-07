@@ -317,7 +317,7 @@ class TestSSHClient:
     def _do_forwarding(self, timeout=sshtunnel.SSH_TIMEOUT):
         self.log.debug('forward-server Start')
         self.ssh_event.wait(THREADS_TIMEOUT)  # wait for SSH server's transport
-        info = ""
+        info = ''
         schan = None
         echo = None
         try:
@@ -327,9 +327,9 @@ class TestSSHClient:
             echo = socket.create_connection((self.eaddr, self.eport))
             while self.is_server_working:
                 inputs = [
-                    obj for obj in [schan, echo] if (
-                        obj is not None and hasattr(obj, 'fileno')
-                    )
+                    obj
+                    for obj in [schan, echo]
+                    if (obj is not None and hasattr(obj, 'fileno'))
                 ]
                 if len(inputs) < 2:
                     continue
@@ -554,7 +554,7 @@ class TestSSHClient:
         with pytest.warns(
             DeprecationWarning,
             match=re.escape(
-                "You should use either .stop() or .stop(force=True)"
+                'You should use either .stop() or .stop(force=True)'
             ),
         ):
             sshtunnel.open_tunnel(
@@ -749,7 +749,7 @@ class TestSSHClient:
             'ssh_host',
             'raise_exception_if_any_forwarder_have_a_problem',
             'ssh_private_key',
-        ]
+        ],
     )
     def test_deprecation_warnings_are_shown(self, deprecated_arg):
         """
@@ -757,10 +757,9 @@ class TestSSHClient:
         """
 
         replacement = sshtunnel._DEPRECATIONS[deprecated_arg]
-        expected_msg = (
-            "'{0}' is DEPRECATED "
-            "use '{1}' instead"
-        ).format(deprecated_arg, replacement)
+        expected_msg = "'{0}' is DEPRECATED use '{1}' instead".format(
+            deprecated_arg, replacement
+        )
 
         _kwargs = {
             'ssh_username': SSH_USERNAME,
@@ -1466,7 +1465,7 @@ class TestAuxiliary:
         for item in kwargs:
             with pytest.warns(
                 DeprecationWarning,
-                match="'{0}' is DEPRECATED use '.+' instead".format(item)
+                match="'{0}' is DEPRECATED use '.+' instead".format(item),
             ):
                 assert kwargs[
                     item
@@ -1478,15 +1477,15 @@ class TestAuxiliary:
             with warnings.catch_warnings(), pytest.raises(
                 ValueError, match="You can't use both '.+' and '.+'"
             ):
-                warnings.simplefilter("ignore", category=DeprecationWarning)
+                warnings.simplefilter('ignore', category=DeprecationWarning)
                 sshtunnel.SSHTunnelForwarder._process_deprecated(
                     'some value', item, kwargs.copy()
                 )
         # deprecated attribute not in deprecation list should raise exception
         with warnings.catch_warnings(), pytest.raises(
-            ValueError, match="item not included in deprecations list"
+            ValueError, match='item not included in deprecations list'
         ):
-            warnings.simplefilter("ignore", category=DeprecationWarning)
+            warnings.simplefilter('ignore', category=DeprecationWarning)
             sshtunnel.SSHTunnelForwarder._process_deprecated(
                 'some value', 'item', kwargs.copy()
             )
@@ -1495,15 +1494,19 @@ class TestAuxiliary:
         """Test that exception is raised with incorrect bind address type"""
         with pytest.raises(
             ValueError,
-            match='ADDRESS is not a tuple, string, or character buffer'
+            match='ADDRESS is not a tuple, string, or character buffer',
         ):
             sshtunnel.check_address(-1)
 
-    @pytest.mark.skipif(os.name != 'posix', reason="UNIX sockets not supported by the platform")
+    @pytest.mark.skipif(
+        os.name != 'posix', reason='UNIX sockets not supported by the platform'
+    )
     def test_check_address_string(self):
         """Test remote unix domain socket exception and invalid string exception"""
         address_list = [
-            ('10.0.0.1', 10000), ('10.0.0.1', 10001), '/tmp/unix-socket'
+            ('10.0.0.1', 10000),
+            ('10.0.0.1', 10001),
+            '/tmp/unix-socket',
         ]
         assert sshtunnel.check_addresses(address_list) is None
 
@@ -1512,7 +1515,6 @@ class TestAuxiliary:
             sshtunnel.check_addresses(address_list, is_remote=True)
 
         with pytest.raises(
-            ValueError,
-            match='ADDRESS not a valid socket domain socket'
+            ValueError, match='ADDRESS not a valid socket domain socket'
         ):
             sshtunnel.check_address('this is not valid')
