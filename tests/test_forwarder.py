@@ -52,7 +52,7 @@ def get_random_string(length=12):
 
 
 def get_test_data_path(x):
-    return path.join(path.abspath(path.dirname(__file__)), x)
+    return str(path.join(path.abspath(path.dirname(__file__)), x))
 
 
 @contextmanager
