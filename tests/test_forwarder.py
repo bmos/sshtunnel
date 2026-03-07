@@ -1491,18 +1491,28 @@ class TestAuxiliary:
                 'some value', 'item', kwargs.copy()
             )
 
-    def test_check_address(self):
-        """Test that an exception is raised with incorrect bind addresses"""
+    def test_check_address_incorrect_type(self):
+        """Test that exception is raised with incorrect bind address type"""
+        with pytest.raises(
+            ValueError,
+            match='ADDRESS is not a tuple, string, or character buffer'
+        ):
+            sshtunnel.check_address(-1)
+
+    @pytest.mark.skipif(os.name != 'posix', reason="UNIX sockets not supported by the platform")
+    def test_check_address_string(self):
+        """Test remote unix domain socket exception and invalid string exception"""
         address_list: List[Union[Tuple, str]] = [
-            ('10.0.0.1', 10000), ('10.0.0.1', 10001)
+            ('10.0.0.1', 10000), ('10.0.0.1', 10001), '/tmp/unix-socket'
         ]
-        if os.name == 'posix':  # UNIX sockets supported by the platform
-            address_list.append('/tmp/unix-socket')
-            # UNIX sockets not supported on remote addresses
-            with pytest.raises(AssertionError):
-                sshtunnel.check_addresses(address_list, is_remote=True)
         assert sshtunnel.check_addresses(address_list) is None
-        with pytest.raises(ValueError):
+
+        # UNIX sockets not supported on remote addresses
+        with pytest.raises(AssertionError):
+            sshtunnel.check_addresses(address_list, is_remote=True)
+
+        with pytest.raises(
+            ValueError,
+            match='ADDRESS not a valid socket domain socket'
+        ):
             sshtunnel.check_address('this is not valid')
-        with pytest.raises(ValueError):
-            sshtunnel.check_address(-1)  # that's not valid either
