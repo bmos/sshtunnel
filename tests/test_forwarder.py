@@ -1275,7 +1275,8 @@ class TestSSHClient:
 class TestAuxiliary:
     """Set of tests that do not need the mock SSH server or logger"""
 
-    def _test_parser(self, parser):
+    @staticmethod
+    def _test_parser(parser):
         assert parser['ssh_address'] == '10.10.10.10'
         assert parser['ssh_username'] == getpass.getuser()
         assert parser['ssh_port'] == 22
