@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 #
 # sshtunnel documentation build configuration file, created by
 # sphinx-quickstart on Mon Feb 22 11:01:56 2016.
