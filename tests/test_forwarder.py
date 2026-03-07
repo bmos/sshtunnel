@@ -1502,7 +1502,7 @@ class TestAuxiliary:
     @pytest.mark.skipif(os.name != 'posix', reason="UNIX sockets not supported by the platform")
     def test_check_address_string(self):
         """Test remote unix domain socket exception and invalid string exception"""
-        address_list: List[Union[Tuple, str]] = [
+        address_list = [
             ('10.0.0.1', 10000), ('10.0.0.1', 10001), '/tmp/unix-socket'
         ]
         assert sshtunnel.check_addresses(address_list) is None
