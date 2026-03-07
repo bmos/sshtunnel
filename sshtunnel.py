@@ -1692,10 +1692,11 @@ class SSHTunnelForwarder:
     def __enter__(self):
         try:
             self.start()
-            return self
         except KeyboardInterrupt:
             self.__exit__()
             raise
+        else:
+            return self
 
     def __str__(self):
         credentials = {
