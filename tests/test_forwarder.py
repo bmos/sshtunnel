@@ -8,6 +8,7 @@ import random
 import select
 import shutil
 import socket
+import string
 import sys
 import tempfile
 import threading
@@ -50,10 +51,7 @@ def get_random_string(length=12):
         [r[0] in asciis, r[1] in asciis]
 
     """
-    ascii_lowercase = 'abcdefghijklmnopqrstuvwxyz'
-    ascii_uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
-    digits = '0123456789'
-    asciis = ascii_lowercase + ascii_uppercase + digits
+    asciis = string.ascii_lowercase + string.ascii_uppercase + string.digits
     return ''.join([random.choice(asciis) for _ in range(length)])
 
 
