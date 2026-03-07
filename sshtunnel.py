@@ -523,7 +523,7 @@ class _ThreadingStreamForwardServer(socketserver.ThreadingMixIn,
     daemon_threads = _DAEMON
 
 
-class SSHTunnelForwarder(object):
+class SSHTunnelForwarder:
     """
     **SSH tunnel class**
 
