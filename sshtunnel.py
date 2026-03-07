@@ -829,7 +829,7 @@ class SSHTunnelForwarder:
             if compression is None:
                 compression = hostname_info.get('compression', '')
                 compression = compression.upper() == 'YES'
-        except OSError:
+        except (IOError, AssertionError, OSError):
             if logger:
                 logger.warning(
                     'Could not read SSH configuration file: %s',
