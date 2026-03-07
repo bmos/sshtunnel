@@ -1475,22 +1475,18 @@ class TestAuxiliary:
                 )
         # use both deprecated and not None new attribute should raise exception
         for item in kwargs:
-            with warnings.catch_warnings(
-                category=DeprecationWarning
-            ), pytest.raises(
+            with warnings.catch_warnings(), pytest.raises(
                 ValueError, match="You can't use both '.+' and '.+'"
             ):
-                warnings.simplefilter("ignore")
+                warnings.simplefilter("ignore", category=DeprecationWarning)
                 sshtunnel.SSHTunnelForwarder._process_deprecated(
                     'some value', item, kwargs.copy()
                 )
         # deprecated attribute not in deprecation list should raise exception
-        with warnings.catch_warnings(
-            category=DeprecationWarning
-        ), pytest.raises(
+        with warnings.catch_warnings(), pytest.raises(
             ValueError, match="item not included in deprecations list"
         ):
-            warnings.simplefilter("ignore")
+            warnings.simplefilter("ignore", category=DeprecationWarning)
             sshtunnel.SSHTunnelForwarder._process_deprecated(
                 'some value', 'item', kwargs.copy()
             )
