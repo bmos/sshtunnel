@@ -1006,7 +1006,7 @@ class SSHTunnelForwarder:
         allow_agent=True,  # look for keys from an SSH agent
         host_pkey_directories=None,  # look for keys in ~/.ssh
         *args,
-        **kwargs,  # for backwards compatibility
+        **kwargs  # for backwards compatibility
     ):
         self.logger = logger or create_logger()
 
