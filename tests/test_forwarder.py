@@ -58,8 +58,8 @@ def get_test_data_path(x):
 @contextmanager
 def capture_stdout_stderr():
     (old_out, old_err) = (sys.stdout, sys.stderr)
+    out = [StringIO(), StringIO()]
     try:
-        out = [StringIO(), StringIO()]
         (sys.stdout, sys.stderr) = out
         yield out
     finally:
