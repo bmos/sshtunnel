@@ -396,7 +396,7 @@ class _ForwardHandler(socketserver.BaseRequestHandler):
         self.logger.log(TRACE_LEVEL, '%s connected', self.info)
         try:
             self._redirect(chan)
-        except OSError:
+        except (OSError, socket.error):
             # Sometimes a RST is sent and a socket error is raised, treat this
             # exception. It was seen that a 3way FIN is processed later on, so
             # no need to make an ordered close of the connection here or raise
@@ -832,7 +832,7 @@ class SSHTunnelForwarder:
             if compression is None:
                 compression = hostname_info.get('compression', '')
                 compression = compression.upper() == 'YES'
-        except (IOError, AssertionError, OSError):
+        except (IOError, OSError):
             if logger:
                 logger.warning(
                     'Could not read SSH configuration file: %s',
@@ -1158,7 +1158,7 @@ class SSHTunnelForwarder:
                 timeout=TUNNEL_TIMEOUT * 1.1
             )
             self.logger.debug('Tunnel to %s is DOWN', _srv.remote_address)
-        except OSError:
+        except (OSError, socket.error):
             self.logger.debug('Tunnel to %s is DOWN', _srv.remote_address)
             self.tunnel_is_up[_srv.local_address] = False
 
@@ -1241,7 +1241,7 @@ class SSHTunnelForwarder:
                         address_to_str(remote_address),
                     ),
                 )
-        except OSError:
+        except (OSError, IOError):
             self._raise(
                 BaseSSHTunnelForwarderError,
                 "Couldn't open tunnel {0} <> {1} might be in use or "
@@ -1475,7 +1475,7 @@ class SSHTunnelForwarder:
                     self.ssh_host,
                 )
                 return
-            except (OSError, paramiko.SSHException) as e:
+            except (OSError, paramiko.SSHException, socket.error) as e:
                 self.logger.error(
                     'Could not connect to gateway %s:%s : %s',
                     self.ssh_host,
