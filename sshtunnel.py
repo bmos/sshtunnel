@@ -623,8 +623,8 @@ class SSHTunnelForwarder:
             Enable/disable SSH proxy. If True and user's
             ``ssh_config_file`` contains a ``ProxyCommand`` directive
             that matches the specified ``ssh_address_or_host``,
-            a :py:class:`paramiko.proxy.ProxyCommand` object will be created where
-            all SSH traffic will be passed through
+            a :py:class:`paramiko.proxy.ProxyCommand` object will be created
+            where all SSH traffic will be passed through
 
             Default: ``True``
 
