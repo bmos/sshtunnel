@@ -29,17 +29,17 @@ except ImportError:
 
 import paramiko
 
-if sys.version_info[0] < 3:
+if sys.version_info[0] >= 3:
+    import queue
+    import socketserver
+    string_types = str
+    input_ = input
+else:
     import Queue as queue
     import SocketServer as socketserver
 
     string_types = basestring  # noqa: F821 undefined name
     input_ = raw_input  # noqa: F821 undefined name
-else:
-    import queue
-    import socketserver
-    string_types = str
-    input_ = input
 
 
 __version__ = '0.4.0'

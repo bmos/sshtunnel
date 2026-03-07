@@ -22,15 +22,12 @@ import paramiko
 
 import sshtunnel
 
-if sys.version_info[0] == 2:
-    from cStringIO import StringIO
-    if sys.version_info < (2, 7):
-        import unittest2 as unittest
-    else:
-        import unittest
-else:
+if sys.version_info[0] >= 3:
     import unittest
     from io import StringIO
+else:
+    from cStringIO import StringIO
+    import unittest
 
 
 # UTILS
