@@ -15,7 +15,6 @@ import warnings
 from contextlib import contextmanager
 from functools import partial
 from os import linesep, path
-from typing import List, Tuple, Union
 
 import mock
 import paramiko
@@ -315,46 +314,64 @@ class TestSSHClient:
             thread.join(timeout)
 
     def _do_forwarding(self, timeout=sshtunnel.SSH_TIMEOUT):
-        self.log.debug('forward-server Start')
-        self.ssh_event.wait(THREADS_TIMEOUT)  # wait for SSH server's transport
-        info = ''
         schan = None
         echo = None
+        info = 'forward-server schan <> echo'
+
+        self.log.debug('forward-server Start')
+        # wait for SSH server's transport
+        self.ssh_event.wait(THREADS_TIMEOUT)
+
         try:
             schan = self.ts.accept(timeout=timeout)
-            info = 'forward-server schan <> echo'
-            self.log.info(info + ' accept()')
-            echo = socket.create_connection((self.eaddr, self.eport))
+            if schan is None:
+                self.log.error(
+                    '%s: Failed to accept SSH channel (timeout)', info
+                )
+                return
+
+            echo = socket.create_connection(
+                (self.eaddr, self.eport), timeout=timeout
+            )
+            self.log.info('%s established', info)
+
             while self.is_server_working:
-                inputs = [
-                    obj
-                    for obj in [schan, echo]
-                    if (obj is not None and hasattr(obj, 'fileno'))
-                ]
-                if len(inputs) < 2:
-                    continue
-                rqst, _, _ = select.select(inputs, [], [], timeout)
+                # On Windows, select.select only accepts objects with a .fileno()
+                try:
+                    r_list = [obj for obj in [schan, echo] if obj is not None]
+                    if not r_list:
+                        break
+
+                    rqst, _, _ = select.select(r_list, [], [], timeout)
+                except (ValueError, TypeError) as e:
+                    self.log.error('%s: Select error: %s', info, e)
+                    break
+
                 if schan in rqst:
                     data = schan.recv(1024)
-                    self.log.debug('{0} -->: {1}'.format(info, repr(data)))
-                    echo.send(data)
-                    if len(data) == 0:
+                    if not data:  # Connection closed
                         break
+                    self.log.debug('%s -->: %s', info, repr(data))
+                    echo.sendall(data)
+
                 if echo in rqst:
                     data = echo.recv(1024)
-                    self.log.debug('{0} <--: {1}'.format(info, repr(data)))
-                    schan.send(data)
-                    if len(data) == 0:
+                    if not data:  # Connection closed
                         break
-            self.log.info('<<< forward-server received STOP signal')
-        except socket.error:
-            self.log.critical('{0} sending RST'.format(info))
+                    self.log.debug('%s <--: %s', info, repr(data))
+                    schan.sendall(data)
+
+        except (socket.error, Exception) as e:
+            self.log.error('%s: Error during forwarding: %r', info, e)
+
         finally:
-            if schan:
-                self.log.debug('{0} closing connection...'.format(info))
-                schan.close()
-                echo.close()
-                self.log.debug('{0} connection closed.'.format(info))
+            for obj in [schan, echo]:
+                if obj:
+                    try:
+                        obj.close()
+                    except paramiko.SSHException:
+                        pass
+            self.log.debug('%s connections closed.', info)
 
     def _run_ssh_server(self):
         self.log.info('ssh-server Start')
