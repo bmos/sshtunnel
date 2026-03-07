@@ -1592,7 +1592,7 @@ class SSHTunnelForwarder:
         """
         self.logger.info('Closing all open connections...')
         opened_address_text = ', '.join(
-            (address_to_str(k.local_address) for k in self._server_list)
+            address_to_str(k.local_address) for k in self._server_list
         ) or 'None'
         self.logger.debug('Listening tunnels: %s', opened_address_text)
         self._stop_transport(force=force)
