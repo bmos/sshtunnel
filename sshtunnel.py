@@ -374,7 +374,7 @@ class _ForwardHandler(socketserver.BaseRequestHandler):
                 src_addr=src_address,
                 timeout=TUNNEL_TIMEOUT
             )
-        except (paramiko.SSHException, EnvironmentError) as e:
+        except (OSError, paramiko.SSHException) as e:
             type_msg = 'ssh ' if isinstance(e, paramiko.SSHException) else ''
             exc_msg = 'open new channel {0}error: {1}'.format(type_msg, e)
             self.logger.log(TRACE_LEVEL, '%s %s', self.info, exc_msg)
@@ -387,7 +387,7 @@ class _ForwardHandler(socketserver.BaseRequestHandler):
         )
         try:
             self._redirect(chan)
-        except socket.error:
+        except OSError:
             # Sometimes a RST is sent and a socket error is raised, treat this
             # exception. It was seen that a 3way FIN is processed later on, so
             # no need to make an ordered close of the connection here or raise
@@ -830,7 +830,7 @@ class SSHTunnelForwarder(object):
             if compression is None:
                 compression = hostname_info.get('compression', '')
                 compression = compression.upper() == 'YES'
-        except IOError:
+        except OSError:
             if logger:
                 logger.warning(
                     'Could not read SSH configuration file: %s',
@@ -1149,7 +1149,7 @@ class SSHTunnelForwarder(object):
             self.logger.debug(
                 'Tunnel to %s is DOWN', _srv.remote_address
             )
-        except socket.error:
+        except OSError:
             self.logger.debug(
                 'Tunnel to %s is DOWN', _srv.remote_address
             )
@@ -1227,7 +1227,7 @@ class SSHTunnelForwarder(object):
                     'argument'.format(address_to_str(local_bind_address),
                                       address_to_str(remote_address))
                 )
-        except IOError:
+        except OSError:
             self._raise(
                 BaseSSHTunnelForwarderError,
                 "Couldn't open tunnel {0} <> {1} might be in use or "
@@ -1451,7 +1451,7 @@ class SSHTunnelForwarder(object):
                     self.ssh_host
                 )
                 return
-            except (paramiko.SSHException, socket.error) as e:
+            except (OSError, paramiko.SSHException) as e:
                 self.logger.error(
                     'Could not connect to gateway %s:%s : %s',
                     self.ssh_host,
