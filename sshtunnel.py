@@ -1672,9 +1672,11 @@ class SSHTunnelForwarder:
         """
         Return a dictionary containing the active local<>remote tunnel_bindings
         """
-        return dict((_server.remote_address, _server.local_address) for
-                    _server in self._server_list if
-                    self.tunnel_is_up[_server.local_address])
+        return {
+            _server.remote_address: _server.local_address
+            for _server in self._server_list
+            if self.tunnel_is_up[_server.local_address]
+        }
 
     @property
     def is_active(self):
