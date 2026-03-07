@@ -14,12 +14,16 @@ from sshtunnel import SSHTunnelForwarder
 
 sshtunnel.DEFAULT_LOGLEVEL = 1
 logging.basicConfig(
-    format='%(asctime)s| %(levelname)-4.3s|%(threadName)10.9s/%(lineno)04d@%(module)-10.9s| %(message)s', level=1)
+    format='%(asctime)s| %(levelname)-4.3s|%(threadName)10.9s/%(lineno)04d@%(module)-10.9s| %(message)s',
+    level=1,
+)
 logger = logging.root
 
 SSH_SERVER_ADDRESS = ('127.0.0.1', 2223)
 SSH_SERVER_USERNAME = 'linuxserver'
-SSH_PKEY = os.path.join(os.path.dirname(__file__), 'ssh-server-config', 'ssh_host_rsa_key')
+SSH_PKEY = os.path.join(
+    os.path.dirname(__file__), 'ssh-server-config', 'ssh_host_rsa_key'
+)
 SSH_SERVER_REMOTE_SIDE_ADDRESS_PG = ('10.5.0.5', 5432)
 SSH_SERVER_REMOTE_SIDE_ADDRESS_MYSQL = ('10.5.0.6', 3306)
 SSH_SERVER_REMOTE_SIDE_ADDRESS_MONGO = ('10.5.0.7', 27017)
@@ -29,7 +33,8 @@ PG_USERNAME = 'postgres'
 PG_PASSWORD = 'postgres'
 PG_QUERY = 'select version()'
 PG_EXPECT = literal_eval(
-    """('PostgreSQL 13.0 (Debian 13.0-1.pgdg100+1) on x86_64-pc-linux-gnu, compiled by gcc (Debian 8.3.0-6) 8.3.0, 64-bit',)""")
+    """('PostgreSQL 13.0 (Debian 13.0-1.pgdg100+1) on x86_64-pc-linux-gnu, compiled by gcc (Debian 8.3.0-6) 8.3.0, 64-bit',)"""
+)
 
 MYSQL_DATABASE_NAME = 'main'
 MYSQL_USERNAME = 'mysql'
@@ -42,7 +47,8 @@ MONGO_USERNAME = 'mongo'
 MONGO_PASSWORD = 'mongo'
 MONGO_QUERY = lambda client, db: client.server_info()
 MONGO_EXPECT = literal_eval(
-    """{'version': '3.6.23', 'gitVersion': 'd352e6a4764659e0d0350ce77279de3c1f243e5c', 'modules': [], 'allocator': 'tcmalloc', 'javascriptEngine': 'mozjs', 'sysInfo': 'deprecated', 'versionArray': [3, 6, 23, 0], 'openssl': {'running': 'OpenSSL 1.0.2g  1 Mar 2016', 'compiled': 'OpenSSL 1.0.2g  1 Mar 2016'}, 'buildEnvironment': {'distmod': 'ubuntu1604', 'distarch': 'x86_64', 'cc': '/opt/mongodbtoolchain/v2/bin/gcc: gcc (GCC) 5.4.0', 'ccflags': '-fno-omit-frame-pointer -fno-strict-aliasing -ggdb -pthread -Wall -Wsign-compare -Wno-unknown-pragmas -Winvalid-pch -Werror -O2 -Wno-unused-local-typedefs -Wno-unused-function -Wno-deprecated-declarations -Wno-unused-but-set-variable -Wno-missing-braces -fstack-protector-strong -fno-builtin-memcmp', 'cxx': '/opt/mongodbtoolchain/v2/bin/g++: g++ (GCC) 5.4.0', 'cxxflags': '-Woverloaded-virtual -Wno-maybe-uninitialized -std=c++14', 'linkflags': '-pthread -Wl,-z,now -rdynamic -Wl,--fatal-warnings -fstack-protector-strong -fuse-ld=gold -Wl,--build-id -Wl,--hash-style=gnu -Wl,-z,noexecstack -Wl,--warn-execstack -Wl,-z,relro', 'target_arch': 'x86_64', 'target_os': 'linux'}, 'bits': 64, 'debug': False, 'maxBsonObjectSize': 16777216, 'storageEngines': ['devnull', 'ephemeralForTest', 'mmapv1', 'wiredTiger'], 'ok': 1.0}""")
+    """{'version': '3.6.23', 'gitVersion': 'd352e6a4764659e0d0350ce77279de3c1f243e5c', 'modules': [], 'allocator': 'tcmalloc', 'javascriptEngine': 'mozjs', 'sysInfo': 'deprecated', 'versionArray': [3, 6, 23, 0], 'openssl': {'running': 'OpenSSL 1.0.2g  1 Mar 2016', 'compiled': 'OpenSSL 1.0.2g  1 Mar 2016'}, 'buildEnvironment': {'distmod': 'ubuntu1604', 'distarch': 'x86_64', 'cc': '/opt/mongodbtoolchain/v2/bin/gcc: gcc (GCC) 5.4.0', 'ccflags': '-fno-omit-frame-pointer -fno-strict-aliasing -ggdb -pthread -Wall -Wsign-compare -Wno-unknown-pragmas -Winvalid-pch -Werror -O2 -Wno-unused-local-typedefs -Wno-unused-function -Wno-deprecated-declarations -Wno-unused-but-set-variable -Wno-missing-braces -fstack-protector-strong -fno-builtin-memcmp', 'cxx': '/opt/mongodbtoolchain/v2/bin/g++: g++ (GCC) 5.4.0', 'cxxflags': '-Woverloaded-virtual -Wno-maybe-uninitialized -std=c++14', 'linkflags': '-pthread -Wl,-z,now -rdynamic -Wl,--fatal-warnings -fstack-protector-strong -fuse-ld=gold -Wl,--build-id -Wl,--hash-style=gnu -Wl,-z,noexecstack -Wl,--warn-execstack -Wl,-z,relro', 'target_arch': 'x86_64', 'target_os': 'linux'}, 'bits': 64, 'debug': False, 'maxBsonObjectSize': 16777216, 'storageEngines': ['devnull', 'ephemeralForTest', 'mmapv1', 'wiredTiger'], 'ok': 1.0}"""
+)
 
 
 def run_postgres_query(port, query=PG_QUERY):
@@ -64,7 +70,8 @@ def run_postgres_query(port, query=PG_QUERY):
                 select.select([conn.fileno()], [], [])
             else:
                 raise psycopg2.OperationalError(
-                    "poll() returned %s from _wait function" % state)
+                    'poll() returned %s from _wait function' % state
+                )
 
     def wait_timeout(conn):
         while 1:
@@ -91,7 +98,7 @@ def run_postgres_query(port, query=PG_QUERY):
                     return ASYNC_READ_TIMEOUT
             else:
                 raise psycopg2.OperationalError(
-                    "poll() returned %s from _wait_timeout function" % state
+                    'poll() returned %s from _wait_timeout function' % state
                 )
             return None
 
@@ -103,7 +110,7 @@ def run_postgres_query(port, query=PG_QUERY):
         user=PG_USERNAME,
         password=PG_PASSWORD,
         sslmode='disable',
-        async_=1
+        async_=1,
     )
     wait(pg_conn)
     cur = pg_conn.cursor()
@@ -116,6 +123,7 @@ def run_postgres_query(port, query=PG_QUERY):
 
 def run_mysql_query(port, query=MYSQL_QUERY):
     import pymysql
+
     conn = pymysql.connect(
         host='127.0.0.1',
         port=port,
@@ -123,7 +131,8 @@ def run_mysql_query(port, query=MYSQL_QUERY):
         password=MYSQL_PASSWORD,
         database=MYSQL_DATABASE_NAME,
         connect_timeout=5,
-        read_timeout=5)
+        read_timeout=5,
+    )
     cursor = conn.cursor()
     cursor.execute(query)
     return cursor.fetchall()
@@ -131,20 +140,25 @@ def run_mysql_query(port, query=MYSQL_QUERY):
 
 def run_mongo_query(port, query=MONGO_QUERY):
     import pymongo
+
     client = pymongo.MongoClient('127.0.0.1', port)
     db = client[MONGO_DATABASE_NAME]
     return query(client, db)
 
 
 def create_tunnel():
-    logging.info('Creating SSHTunnelForwarder... (sshtunnel v%s, paramiko v%s)',
-                 sshtunnel.__version__, paramiko.__version__)
+    logging.info(
+        'Creating SSHTunnelForwarder... (sshtunnel v%s, paramiko v%s)',
+        sshtunnel.__version__,
+        paramiko.__version__,
+    )
     return SSHTunnelForwarder(
         SSH_SERVER_ADDRESS,
         ssh_username=SSH_SERVER_USERNAME,
         ssh_pkey=SSH_PKEY,
         remote_bind_addresses=[
-            SSH_SERVER_REMOTE_SIDE_ADDRESS_PG, SSH_SERVER_REMOTE_SIDE_ADDRESS_MYSQL,
+            SSH_SERVER_REMOTE_SIDE_ADDRESS_PG,
+            SSH_SERVER_REMOTE_SIDE_ADDRESS_MYSQL,
             SSH_SERVER_REMOTE_SIDE_ADDRESS_MONGO,
         ],
         logger=logger,
@@ -222,14 +236,16 @@ def show_threading_state_if_required():
 
     if len(current_threads) > 1:
         logging.warning('[2] STACK INFO')
-        code = ["\n\n*** STACKTRACE - START ***\n"]
+        code = ['\n\n*** STACKTRACE - START ***\n']
         for threadId, stack in sys._current_frames().items():
-            code.append("\n# ThreadID: %s" % threadId)
+            code.append('\n# ThreadID: %s' % threadId)
             for filename, lineno, name, line in traceback.extract_stack(stack):
-                code.append('File: "%s", line %d, in %s' % (filename, lineno, name))
+                code.append(
+                    'File: "%s", line %d, in %s' % (filename, lineno, name)
+                )
                 if line:
-                    code.append("  %s" % (line.strip()))
-        code.append("\n*** STACKTRACE - END ***\n\n")
+                    code.append('  %s' % (line.strip()))
+        code.append('\n*** STACKTRACE - END ***\n\n')
         logging.info('\n'.join(code))
 
 
