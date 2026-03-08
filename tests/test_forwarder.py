@@ -1536,3 +1536,13 @@ class TestAuxiliary:
             ValueError, match='ADDRESS not a valid socket domain socket'
         ):
             sshtunnel.check_address('this is not valid')
+
+    @pytest.mark.skipif(
+        os.name == 'posix', reason='UNIX sockets must not be supported by the platform'
+    )
+    def test_check_address_string_not_supported(self):
+        """Test unix domain socket exception on unsupported platform"""
+        with pytest.raises(
+            ValueError, match='Platform does not support UNIX domain sockets'
+        ):
+            sshtunnel.check_address('/tmp/unix-socket')
