@@ -1291,15 +1291,14 @@ class TestSSHClient:
 
     def test_get_keys_check_error(self, tmp_path):
         """Test if warning is shown if an OS error occurs while reading keys"""
-        (tmp_path / "id_rsa").write_text("this file exists")
+        (tmp_path / 'id_rsa').write_text('this file exists')
 
         with patch(
             'sshtunnel.SSHTunnelForwarder.read_private_key_file'
         ) as mock_read:
             mock_read.side_effect = OSError()
             sshtunnel.SSHTunnelForwarder.get_keys(
-                logger=self.log,
-                host_pkey_directories=[str(tmp_path)]
+                logger=self.log, host_pkey_directories=[str(tmp_path)]
             )
 
         assert any(
@@ -1527,42 +1526,72 @@ class TestAuxiliary:
                 'some value', 'item', kwargs.copy()
             )
 
-    def test_check_address_incorrect_type(self):
-        """Test that exception is raised with incorrect bind address type"""
-        with pytest.raises(
+
+@pytest.mark.parametrize(
+    ('address', 'os_name', 'path_exists', 'expected_error', 'match'),
+    [
+        (
+            -1,
+            'posix',
+            False,
             ValueError,
-            match='ADDRESS is not a tuple, string, or character buffer',
-        ):
-            sshtunnel.check_address(-1)
+            'ADDRESS is not a tuple, string, or character buffer',
+        ),
+        (
+            'not/a/path',
+            'posix',
+            False,
+            ValueError,
+            'ADDRESS not a valid socket domain socket',
+        ),
+        (
+            '/tmp/unix.sock',
+            'nt',
+            True,
+            ValueError,
+            'Platform does not support UNIX domain sockets',
+        ),
+        ('/tmp/unix.sock', 'posix', True, None, None),
+        (('10.0.0.1', 8080), 'posix', True, None, None),
+    ],
+)
+def test_check_address_combined(
+    address, os_name, path_exists, expected_error, match
+):
+    with patch('os.name', os_name), patch(
+        'os.path.exists', return_value=path_exists
+    ), patch('os.access', return_value=path_exists):
+        if expected_error:
+            with pytest.raises(expected_error, match=match):
+                sshtunnel.check_address(address)
+        else:
+            # Should not raise any exception
+            sshtunnel.check_address(address)
 
-    @pytest.mark.skipif(
-        os.name != 'posix', reason='UNIX sockets not supported by the platform'
-    )
-    def test_check_address_string(self):
-        """Remote unix domain socket exception and invalid string exception"""
-        address_list = [
-            ('10.0.0.1', 10000),
-            ('10.0.0.1', 10001),
-            '/tmp/unix-socket',
-        ]
-        assert sshtunnel.check_addresses(address_list) is None
 
-        # UNIX sockets not supported on remote addresses
-        with pytest.raises(AssertionError):
-            sshtunnel.check_addresses(address_list, is_remote=True)
-
-        with pytest.raises(
-            ValueError, match='ADDRESS not a valid socket domain socket'
-        ):
-            sshtunnel.check_address('this is not valid')
-
-    @pytest.mark.skipif(
-        os.name == 'posix',
-        reason='UNIX sockets must not be supported by the platform',
-    )
-    def test_check_address_string_not_supported(self):
-        """Test unix domain socket exception on unsupported platform"""
-        with pytest.raises(
-            ValueError, match='Platform does not support UNIX domain sockets'
-        ):
-            sshtunnel.check_address('/tmp/unix-socket')
+@pytest.mark.parametrize(
+    ('address_list', 'is_remote', 'expected_error', 'match'),
+    [
+        ([('10.0.0.1', 10000), '/tmp/unix-socket'], False, None, None),
+        (
+            [('10.0.0.1', 10000), '/tmp/unix-socket'],
+            True,
+            AssertionError,
+            'UNIX domain sockets not allowed',
+        ),
+        ([('10.0.0.1', 10000), 123], False, AssertionError, None),
+    ],
+)
+def test_check_addresses_combined(
+    address_list, is_remote, expected_error, match
+):
+    with (
+        patch('os.name', 'posix'),
+        patch('os.path.exists', return_value=True),
+        patch('os.access', return_value=True),
+    ):
+        if expected_error:
+            with pytest.raises(expected_error, match=match):
+                sshtunnel.check_addresses(address_list, is_remote=is_remote)
+        else:
+            sshtunnel.check_addresses(address_list, is_remote=is_remote)
