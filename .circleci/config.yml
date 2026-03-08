@@ -29,13 +29,13 @@ jobs:
           keys:
             - sshtunnel-py<< parameters.version >>-{{ checksum "sshtunnel.py" }}-{{ checksum "tests/requirements.txt" }}-0
       - run: &install
-          name:  --verbosesshtunnel and build&test dependencies
+          name: Install sshtunnel and build&test dependencies
           command: |
             python --version
             pipenv --version
             pip --version
-            pipenv install --verbose -e .
-            pipenv install --verbose --dev -r tests/requirements.txt
+            pipenv install -e .
+            pipenv install --dev -r tests/requirements.txt
             cat Pipfile.lock
           environment:
             - PIPENV_VENV_IN_PROJECT: 1
@@ -73,7 +73,7 @@ jobs:
       - save_cache: *save_cache
       - run:
           name: Installing documentation dependencies
-          command: pipenv install --verbose --dev -r docs/requirements.txt
+          command: pipenv install --dev -r docs/requirements.txt
       - run:
           name: Build documentation
           command: pipenv run sphinx-build -WavE -b html docs _build/html
@@ -91,7 +91,7 @@ jobs:
       - save_cache: *save_cache
       - run:
           name: Installing syntax checks dependencies
-          command: pipenv install --verbose --dev -r tests/requirements-syntax.txt
+          command: pipenv install --dev -r tests/requirements-syntax.txt
       - run:
           name: checking MANIFEST.in
           command: pipenv run check-manifest --ignore tox.ini,tests*,*.yml
