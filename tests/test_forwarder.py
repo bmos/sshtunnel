@@ -337,7 +337,7 @@ class TestSSHClient:
             self.log.info('%s established', info)
 
             while self.is_server_working:
-                # On Windows, select.select only accepts objects with a .fileno()
+                # select.select only accepts objects with .fileno() on win
                 try:
                     r_list = [obj for obj in [schan, echo] if obj is not None]
                     if not r_list:
@@ -1293,7 +1293,9 @@ class TestSSHClient:
         """Test if warning is shown if an OS error occurs while reading keys"""
         (tmp_path / "id_rsa").write_text("this file exists")
 
-        with patch('sshtunnel.SSHTunnelForwarder.read_private_key_file') as mock_read:
+        with patch(
+            'sshtunnel.SSHTunnelForwarder.read_private_key_file'
+        ) as mock_read:
             mock_read.side_effect = OSError()
             sshtunnel.SSHTunnelForwarder.get_keys(
                 logger=self.log,
@@ -1304,6 +1306,7 @@ class TestSSHClient:
             'Private key file' in msg and 'check error' in msg
             for msg in self.sshtunnel_log_messages['warning']
         )
+
 
 class TestAuxiliary:
     """Set of tests that do not need the mock SSH server or logger"""
@@ -1536,7 +1539,7 @@ class TestAuxiliary:
         os.name != 'posix', reason='UNIX sockets not supported by the platform'
     )
     def test_check_address_string(self):
-        """Test remote unix domain socket exception and invalid string exception"""
+        """Remote unix domain socket exception and invalid string exception"""
         address_list = [
             ('10.0.0.1', 10000),
             ('10.0.0.1', 10001),
@@ -1554,7 +1557,8 @@ class TestAuxiliary:
             sshtunnel.check_address('this is not valid')
 
     @pytest.mark.skipif(
-        os.name == 'posix', reason='UNIX sockets must not be supported by the platform'
+        os.name == 'posix',
+        reason='UNIX sockets must not be supported by the platform',
     )
     def test_check_address_string_not_supported(self):
         """Test unix domain socket exception on unsupported platform"""
