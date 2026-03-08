@@ -15,6 +15,7 @@ import warnings
 from contextlib import contextmanager
 from functools import partial
 from os import linesep, path
+from unittest.mock import patch
 
 import mock
 import paramiko
@@ -1288,6 +1289,21 @@ class TestSSHClient:
             for msg in self.sshtunnel_log_messages['info']
         )
 
+    def test_get_keys_check_error(self, tmp_path):
+        """Test if warning is shown if an OS error occurs while reading keys"""
+        (tmp_path / "id_rsa").write_text("this file exists")
+
+        with patch('sshtunnel.SSHTunnelForwarder.read_private_key_file') as mock_read:
+            mock_read.side_effect = OSError()
+            sshtunnel.SSHTunnelForwarder.get_keys(
+                logger=self.log,
+                host_pkey_directories=[str(tmp_path)]
+            )
+
+        assert any(
+            'Private key file' in msg and 'check error' in msg
+            for msg in self.sshtunnel_log_messages['warning']
+        )
 
 class TestAuxiliary:
     """Set of tests that do not need the mock SSH server or logger"""
