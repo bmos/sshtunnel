@@ -61,15 +61,15 @@ def get_test_data_path(x):
 
 @contextmanager
 def capture_stdout_stderr():
-    (old_out, old_err) = (sys.stdout, sys.stderr)
-    out = [StringIO(), StringIO()]
+    out, err = StringIO(), StringIO()
+    old_out, old_err = sys.stdout, sys.stderr
     try:
-        (sys.stdout, sys.stderr) = out
-        yield out
+        sys.stdout, sys.stderr = out, err
+        yield [out, err]
     finally:
-        (sys.stdout, sys.stderr) = (old_out, old_err)
-        out[0] = out[0].getvalue()
-        out[1] = out[1].getvalue()
+        sys.stdout, sys.stderr = old_out, old_err
+        out.seek(0)
+        err.seek(0)
 
 
 # Ensure that ``ssh_config_file is None`` during tests, exceptions are not
