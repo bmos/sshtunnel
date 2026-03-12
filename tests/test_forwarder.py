@@ -118,30 +118,18 @@ class MockLoggingHandler(logging.Handler, object):
 
     def __init__(self, *args, **kwargs):
         self.messages = {
-            'debug': [],
-            'info': [],
-            'warning': [],
-            'error': [],
-            'critical': [],
-            'trace': [],
+            k: [] for k in [
+                'debug', 'info', 'warning', 'error', 'critical', 'trace'
+            ]
         }
-        super(MockLoggingHandler, self).__init__(*args, **kwargs)
+        logging.Handler.__init__(self, *args, **kwargs)
 
     def emit(self, record):
-        """Store a message from ``record`` in ``self.messages`` dict."""
-        self.acquire()
-        try:
-            self.messages[record.levelname.lower()].append(record.getMessage())
-        finally:
-            self.release()
+        self.messages[record.levelname.lower()].append(record.getMessage())
 
     def reset(self):
-        self.acquire()
-        try:
-            for message_list in self.messages:
-                self.messages[message_list] = []
-        finally:
-            self.release()
+        for k in self.messages:
+            self.messages[k] = []
 
 
 class NullServer(paramiko.ServerInterface):
