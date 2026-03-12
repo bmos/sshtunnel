@@ -1588,11 +1588,9 @@ def test_check_address_combined(
 def test_check_addresses_combined(
     address_list, is_remote, expected_error, match
 ):
-    with (
-        patch('os.name', 'posix'),
-        patch('os.path.exists', return_value=True),
-        patch('os.access', return_value=True),
-    ):
+    with patch('os.name', 'posix'), \
+         patch('os.path.exists', return_value=True), \
+         patch('os.access', return_value=True):
         if expected_error:
             with pytest.raises(expected_error, match=match):
                 sshtunnel.check_addresses(address_list, is_remote=is_remote)
