@@ -15,9 +15,12 @@ import warnings
 from contextlib import contextmanager
 from functools import partial
 from os import linesep, path
-from unittest.mock import patch
 
-import mock
+try:
+    from unittest.mock import MagicMock, patch
+except ImportError:
+    from mock import MagicMock, patch
+
 import paramiko
 import pytest
 
