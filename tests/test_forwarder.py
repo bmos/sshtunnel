@@ -1235,7 +1235,7 @@ class TestSSHClient:
         """
         self.check_make_ssh_forward_server_sets_daemon(False)
 
-    def test_get_keys(self, tmp_path):
+    def test_get_keys(self, tmpdir):
         """Test loading keys from the paramiko Agent"""
         with self._test_server(
             (self.saddr, self.sport),
@@ -1267,13 +1267,11 @@ class TestSSHClient:
                 for msg in self.sshtunnel_log_messages['info']
             )
 
-        shutil.copy(get_test_data_path(PKEY_FILE), str(tmp_path / 'id_rsa'))
+        shutil.copy(get_test_data_path(PKEY_FILE), str(tmpdir.join('id_rsa')))
 
         keys = sshtunnel.SSHTunnelForwarder.get_keys(
             self.log,
-            host_pkey_directories=[
-                str(tmp_path),
-            ],
+            host_pkey_directories=[str(tmpdir)],
         )
         assert isinstance(keys, list)
         assert any(
@@ -1281,16 +1279,16 @@ class TestSSHClient:
             for msg in self.sshtunnel_log_messages['info']
         )
 
-    def test_get_keys_check_error(self, tmp_path):
+    def test_get_keys_check_error(self, tmpdir):
         """Test if warning is shown if an OS error occurs while reading keys"""
-        (tmp_path / 'id_rsa').write_text('this file exists')
+        tmpdir.join('id_rsa').write('this file exists')
 
         with patch(
             'sshtunnel.SSHTunnelForwarder.read_private_key_file'
         ) as mock_read:
             mock_read.side_effect = OSError()
             sshtunnel.SSHTunnelForwarder.get_keys(
-                logger=self.log, host_pkey_directories=[str(tmp_path)]
+                logger=self.log, host_pkey_directories=[str(tmpdir)]
             )
 
         assert any(
